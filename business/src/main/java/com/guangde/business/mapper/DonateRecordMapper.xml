@@ -1,0 +1,1523 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.DonateRecordMapper">
+	<insert id="save" parameterType="DonateRecord" useGeneratedKeys="true" keyProperty="id">
+		insert into donate_record
+		(
+			capitalinoutId,
+			userId,
+			projectId,
+			nickName,
+			coverImageId,
+			projectTitle,
+			donatAmount,
+			state,
+			donatTime,
+			donatType,
+			donateTog,
+			extensionPeople,
+			leaveWord,
+			nameOpen,
+			tranNum,
+			donateSource
+		)
+		values
+		(
+			#{capitalinoutId},
+			#{userId},
+			#{projectId},
+			#{nickName},
+			#{coverImageId},
+			#{projectTitle},
+			#{donatAmount},
+			#{state},
+			#{donatTime},
+			#{donatType},
+			#{donateTog},
+			#{extensionPeople},
+			#{leaveWord},
+			#{nameOpen},
+			#{tranNum},
+			#{donateSource}
+		)
+	</insert>
+  
+  	<select id="queryByParam"  parameterType="DonateRecord" resultType="DonateRecord">
+  		select d.*,bf.middleUrl coverImageUrl  from donate_record d left join b_file bf on d.coverImageId = bf.id
+
+		<where>
+			state = 302
+			<if test="projectId != null">
+				and projectId = #{projectId}
+			</if>
+			<if test="donateIds != null">
+				AND  d.id not in 
+				<foreach collection="donateIds" index="index" item="item" open="(" separator="," close=")">  
+		            #{item}   
+		   		 </foreach> 
+			</if>
+			<if test="userId != null">
+				and userId = #{userId}
+			</if>
+		</where>
+
+		<choose>
+			<when test="orderBy !=null and orderBy !=''">
+				 order by ${orderBy}  <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+			</when>
+			<otherwise>
+				order by d.donatTime DESC
+			</otherwise>
+		</choose>
+  	</select>
+	
+	<select id="queryByIdList"  parameterType="DonateRecord" resultType="DonateRecord">
+		SELECT
+			t.donatAmount,
+			p.title as projectTitle
+		FROM
+			donate_record t
+		LEFT JOIN cs_project p ON t.projectId = p.id
+		<where>
+				<if test="idList != null">
+					and  t.id in 
+					<foreach collection="idList" index="index" item="item" open="(" separator="," close=")">  
+			            #{item}   
+			   		 </foreach> 
+				</if>
+				<if test="idList == null">
+					t.id = 0 ;
+				</if>
+		</where>
+	</select>
+	
+	<select id="queryDonateListByInvoice"  parameterType="DonateRecord" resultType="DonateRecord">
+			SELECT
+			t.donatAmount,
+			t.donatTime,
+			p.title as projectTitle,
+			t.id,
+			p.id as projectId,
+			p.field,
+			c.tranNum
+			FROM
+				donate_record t
+			LEFT JOIN cs_project p ON t.projectId = p.id
+			LEFT JOIN capitalinout c ON c.id = t.capitalinoutId
+			<where>
+				<if test="idList != null">
+					and  t.id not in 
+					<foreach collection="idList" index="index" item="item" open="(" separator="," close=")">  
+			            #{item}   
+			   		 </foreach> 
+				</if>
+				<if test="userId != null">
+					and  t.userId =  #{userId}
+				</if>
+				<if test="state != null">
+					and  t.state =  #{state}
+				</if>
+					and t.projectId != 285
+			</where>
+			
+	</select>
+	
+	<select id="sumQueryDonateListByInvoice"  parameterType="DonateRecord" resultType="double">
+			SELECT
+				sum(t.donatAmount)
+			FROM
+				donate_record t
+			LEFT JOIN cs_project p ON t.projectId = p.id
+			<where>
+			 t.projectId != 285
+				<if test="idList != null">
+					and  t.id not in 
+					<foreach collection="idList" index="index" item="item" open="(" separator="," close=")">  
+			            #{item}   
+			   		 </foreach> 
+				</if>
+				<if test="userId != null">
+					and  t.userId =  #{userId}
+				</if>
+				<if test="state != null">
+					and  t.state =  #{state}
+				</if>
+			</where>
+	</select>
+	
+	
+	<select id="countQueryByParam"  parameterType="DonateRecord" resultType="double">
+		select sum(r.donatAmount) from donate_record r, cs_project p where r.projectid = p.id 
+		and r.donatType !='goodHelpBack' and r.projectId != 285
+			<if test="projectId != null">
+			 	and r.projectId=#{projectId} 
+			</if>
+			<if test="field != null">
+				and p.field=#{field}
+			</if>
+			<if test="donatType != null">
+				and r.donatType = #{donatType}
+			</if>
+		    <if test="userId != null and userId != 0">
+		    	and r.userId = #{userId}
+		    </if>
+		     <if test="extensionPeople != null and extensionPeople != 0">
+		    	and r.extensionPeople = #{extensionPeople}
+		    </if>
+ 			<if test="id != null and id != 0">
+				and r.id = #{id}
+			</if>
+			<if test="state != null">
+				 and r.state = #{state} 
+			</if>
+			<if test="capitalinoutId != null">
+				 and r.capitalinoutId = #{capitalinoutId} 
+			</if>
+			<if test="queryStartDate != null">
+				 and r.donatTime &gt;= #{queryStartDate} 
+			</if>
+			<if test="queryEndDate != null">
+				 and r.donatTime &lt;= #{queryEndDate} 
+			</if>
+	</select>
+	
+	
+	<select id="countNumQueryByParam"  parameterType="DonateRecord" resultType="integer">
+		select count(1) from donate_record r, cs_project p where r.projectid = p.id
+		and r.donatType !='goodHelpBack' and r.projectId != 285
+			<if test="projectId != null">
+				and r.projectId=#{projectId}
+			</if>
+			<if test="field != null">
+				and p.field=#{field}
+			</if>
+			<if test="donatType != null">
+				and r.donatType = #{donatType}
+			</if>
+		    <if test="userId != null and userId != 0">
+		    	and r.userId = #{userId}
+		    </if>
+		    <if test="extensionPeople != null and extensionPeople != 0">
+		    	and r.extensionPeople = #{extensionPeople}
+		    </if>
+ 			<if test="id != null and id != 0">
+				and r.id = #{id}
+			</if>
+			<if test="state != null">
+				 and r.state = #{state} 
+			</if>
+			<if test="capitalinoutId != null">
+				 and r.capitalinoutId = #{capitalinoutId} 
+			</if>
+			<if test="queryStartDate != null">
+				 and r.donatTime &gt;= #{queryStartDate} 
+			</if>
+			<if test="queryEndDate != null">
+				 and r.donatTime &lt;= #{queryEndDate} 
+			</if>
+	</select>
+	
+	<select id="queryByDonate"  parameterType="DonateRecord" resultType="DonateRecord">
+	
+			select 
+				sum(r.donatAmount) donatAmount ,u.username,u.nickName,u.coverImageId
+			from  donate_record r,frontUser u, cs_project p
+			<where>
+				 r.userId = u.id 
+				 and r.projectId=p.id
+				 and r.projectId != 285
+				 and u.nickName not like '%zhengshi%'
+				 <if test="userId != null">
+				  	and r.userId = #{userId}
+				 </if>
+				 
+				<if test="state != null">
+					and r.state = #{state}
+				</if>
+				
+				<if test="donatType != null">
+					and r.donatType = #{donatType}
+				</if>
+				
+				 <if test="field != null">
+				 	 and p.field=#{field} 
+				 </if>
+				 
+			</where>
+			<choose>
+				<when test="userId == null">
+					GROUP BY r.userId  
+					ORDER BY donatAmount desc
+				</when>
+			</choose>
+	
+	</select>
+	
+	<update id="update"  parameterType="DonateRecord" >
+		update donate_record
+		<set>
+			<if test="state != null">
+				state = #{state},
+			</if>
+			<if test="capitalinoutId != null">
+				capitalinoutId = #{capitalinoutId},
+			</if>
+			<!--<if test="nameOpen != null">
+				nameOpen = #{nameOpen},
+			</if>-->
+		</set>
+		<where>
+			id=#{id}
+			<if test="userId != null">
+				and  userId = #{userId}
+			</if>
+		</where>
+	</update>
+	
+	<!-- 发送祝福 -->
+	<update id="updateGoodLuck" parameterType="DonateRecord">
+		update donate_record
+		<set>
+			<if test="leaveWord != null">
+				leaveWord = #{leaveWord}
+			</if>
+		</set>
+		<where>
+			capitalinoutId = #{capitalinoutId}
+		</where>
+	</update>
+	
+	<select id="countByParam" parameterType="DonateRecord" resultType="DonateRecord">
+		select count(*) as goodHelpCount,sum(d.donatAmount) as goodHelpAmount from donate_record d
+		<where>
+			<if test="donatType != null">
+				and d.donatType = #{donatType}
+			</if>
+			<if test="projectId != null">
+				and d.projectId = #{projectId}
+			</if>
+			<if test="userId != null">
+				and d.userId = #{userId}
+			</if>
+			<if test="state != null">
+				and d.state = #{state}
+			</if>
+			<!-- leaveWord此时为一个参数（0：今天的捐款金额和笔数；1:昨天的捐款金额和笔数） -->
+			<if test="leaveWord == 0">
+				and DATE_FORMAT(d.donatTime, "%y-%m-%d") = CURDATE()
+			</if>
+			<if test="leaveWord == 1">
+			    and TO_DAYS(DATE_FORMAT(NOW(), "%y-%m-%d")) - TO_DAYS(DATE_FORMAT(d.donatTime, "%y-%m-%d")) = 1
+				<!-- and DATE_FORMAT(d.donatTime, "%y-%m-%d") = CURDATE() -->
+			</if>
+			<if test="idList != null">
+				and  d.projectId in 
+				<foreach collection="idList" index="index" item="item" open="(" separator="," close=")">  
+			        #{item}   
+			   	</foreach> 
+			</if>
+		</where>	
+	</select>
+	
+	<select id="countByCompanyGoodHelp" parameterType="DonateRecord" resultType="integer">
+		select  COUNT(DISTINCT d.projectId) 
+			from donate_record d 
+		where 
+		d.projectId in (
+						SELECT p.id from  cs_project  p where  p.userId = #{userId} and p.type = 'enterpriseProject' and p.state >230 
+					)  
+		and d.state = 302 and d.donatType = #{donatType} and d.userId = #{userId} and d.projectId != 285
+	</select>
+	
+	<select id="countCompanyDonateProject" parameterType="integer" resultType="integer">
+			select count(distinct d.projectId) from donate_record  d  where d.projectId != 285 and  (d.companyId = #{0} or (d.userId = #{1} and d.companyId is null)) and d.state = 302  and d.donatType !='goodHelpBack'
+	</select>
+	
+	<select id="queryById" parameterType="DonateRecord" resultType="DonateRecord">
+		select *  from  donate_record  where  capitalinoutId = #{capitalinoutId}
+	</select>
+	
+	<select id="queryByDonateId" parameterType="DonateRecord" resultType="DonateRecord">
+		select *  from  donate_record  where  id = #{0}
+	</select>
+	
+	<select id="countDonateAmountByCompanyId"  parameterType="integer" resultType="double">
+			select   sum(d.donatAmount)  from donate_record d where d.projectId != 285 and  d.state= 302 and (d.companyId = #{0} or (d.userId = #{1} and d.companyId is null))and  d.donatType not in('enterpriseDonation','goodHelpBack')  and d.capitalinoutId is not null  
+	</select>
+	
+	<select id="queryDonateRecordList" parameterType="DonateRecord" resultType="DonateRecord">
+			SELECT
+				d.*, f.userName,
+				p.title AS projectTitle
+			FROM
+				donate_record d
+			LEFT JOIN frontUser f ON d.userId = f.id
+			 JOIN (
+				SELECT
+					*
+				FROM
+					cs_project
+				WHERE
+					id IN (
+						SELECT
+							g.project_id
+						FROM
+							company_GoodHelp g
+						WHERE
+							g.userId = #{userId}
+						AND g.payState = 302
+						AND g.callNumber > 0
+					)
+			) p ON d.projectId = p.id
+		<where>
+			d.projectId != 285
+			<if test="projectId != null">
+				and d.projectId = #{projectId}
+			</if>
+			<if test="donatType != null">
+				and d.donatType = #{donatType}
+			</if>
+			<if test="state != null">
+				and d.state = #{state}
+			</if>
+			<if test="companyId != null">
+				and d.companyId = #{companyId}
+			</if>
+			<if test="queryStartDate != null">
+				and d.donatTime &gt;= #{queryStartDate} 
+			</if>
+			<if test="queryEndDate != null">
+				and d.donatTime &lt;= #{queryEndDate} 
+			</if>
+		</where>
+	</select>
+	
+	<select id="countQueryDonateRecordList" parameterType="DonateRecord" resultType="double">
+		select sum(d.donatAmount) from  donate_record d
+		<where>
+			AND d.projectId != 285
+			<if test="projectId != null">
+				and d.projectId = #{projectId}
+			</if>
+			<if test="donatType != null">
+				and d.donatType = #{donatType}
+			</if>
+			<if test="state != null">
+				and d.state = #{state}
+			</if>
+			<if test="companyId != null">
+				and d.companyId = #{companyId}
+			</if>
+			<if test="donateTog != null">
+				and d.donateTog = #{donateTog}
+			</if>
+			<if test="queryStartDate != null">
+				and d.donatTime &gt;= #{queryStartDate} 
+			</if>
+			<if test="queryEndDate != null">
+				and d.donatTime &lt;= #{queryEndDate} 
+			</if>
+			<if test="outDonor != null">
+				and d.outDonor = #{outDonor}
+			</if>
+			<if test="userId != null">
+				and d.userId = #{userId}
+			</if>
+		</where>
+	</select>
+	
+	<select id="queryProjectIdByCapitalinoutId" parameterType="string" resultType="integer">
+		
+		select projectId from  donate_record  where capitalinoutId = (select id from capitalinout where tranNum = #{tranNum})
+		
+	</select>
+	
+	<select id="queryDonateRecordListByUser" parameterType="DonateRecord" resultType="DonateRecord">
+	
+			SELECT
+				d.*, p.title as projectTitle,p.field AS field,
+				f.userName,
+				f.nickName
+			FROM
+				donate_record d
+			JOIN (
+				SELECT
+					id,
+					title,
+					field
+				FROM
+					cs_project
+				<where>
+					userId = #{userId}
+				<if test="field != null">
+					 and field= #{field} 
+				</if>
+				</where>
+			) AS p ON d.projectId = p.id
+			LEFT JOIN frontUser f ON d.userId = f.id
+			<where>
+				d.state = 302 and d.donatType != 'goodHelpBack'
+				<if test="queryStartDate != null">
+					 and d.donatTime &gt;= #{queryStartDate} 
+				</if>
+				<if test="queryEndDate != null">
+					 and d.donatTime &lt;= #{queryEndDate} 
+				</if>
+			</where>
+			ORDER BY  d.donatTime DESC
+	</select>
+	<!-- 最新的捐款记录，返回用户头像，姓名等信息，捐款的信息 -->
+	<select id="queryLatestDonateRecordList" parameterType="DonateRecord" resultType="DonateRecord">
+			SELECT
+				d.nameOpen,
+				d.projectId,
+				d.donatAmount,
+				d.donatTime,
+  				f.nickName AS nickName,
+				f.userName AS userName,
+				b.url AS coverImageurl,
+				puInfo.realName AS recipientName,
+				p.title AS projectTitle,
+				p.field AS field
+			FROM
+			<choose>
+				<when test="state == 2015">
+					donate_record_2015 d
+				</when>
+				<when test="state == 2016">
+					donate_record_2016 d
+				</when>
+				<when test="state == 2017">
+					donate_record d
+				</when>
+				<otherwise>
+					donate_record d
+				</otherwise>
+			</choose>
+				
+			LEFT JOIN frontUser f ON d.userId = f.id
+			LEFT JOIN b_file b ON b.id = f.coverImageId
+			LEFT JOIN cs_project_userInfo puInfo ON d.projectId = puInfo.projectId AND puInfo.personType = 0
+			LEFT JOIN cs_project p ON p.id = d.projectId 
+			
+			WHERE
+				<!-- d.donatTime &lt; NOW() AND -->
+				d.projectId != 285
+				AND d.state = 302 
+				
+				<if test="projectId != null">
+					and d.projectId = #{projectId}
+				</if>
+				<if test="queryStartDate != null">
+					 and d.donatTime &gt;= #{queryStartDate} 
+				</if>
+				<if test="queryEndDate != null">
+					 and d.donatTime &lt;= #{queryEndDate} 
+				</if>
+				<if test="projectTitle != null">
+					and (p.title LIKE '%${projectTitle}%' or 
+					puInfo.realName  LIKE '%${projectTitle}%' or 
+					f.nickName  LIKE '%${projectTitle}%')
+				</if>
+			<choose>
+				<when test="state != null">
+					AND date_format(d.donatTime,'%Y') = #{state}
+				</when>
+				<!-- 一个月 -->
+				<otherwise>
+					AND  DATE_SUB(CURDATE(), INTERVAL 30 DAY) &lt;= d.donatTime
+				</otherwise>
+			</choose>
+			ORDER BY d.donatTime DESC
+			
+			<!--SELECT
+				*
+				FROM
+				(
+			SELECT
+					d.*, f.nickName AS nickName,f.userName AS userName,
+					b.url AS coverImageurl,
+					pf.realName AS recipientName,
+					p.title AS projectTitle,
+					p.field AS field
+				FROM
+					donate_record d
+				LEFT JOIN frontUser f ON d.userId = f.id
+				LEFT JOIN b_file b ON b.id = f.coverImageId
+				LEFT JOIN (
+					SELECT
+						*
+					FROM
+						cs_project_userInfo
+					WHERE
+						personType = 0
+				) AS pf ON d.projectId = pf.projectId
+				INNER JOIN cs_project p ON d.projectId = p.id AND p.title NOT LIKE '%test%'
+				<where>
+					AND d.userId = f.id  
+					AND d.projectId != 285
+					<if test="state != null">
+						and d.state = #{state}
+					</if>
+					<if test="projectId != null">
+						and d.projectId = #{projectId}
+					</if>
+					<if test="queryStartDate != null">
+						 and d.donatTime &gt;= #{queryStartDate} 
+					</if>
+					<if test="queryEndDate != null">
+						 and d.donatTime &lt;= #{queryEndDate} 
+					</if>
+				</where>
+				ORDER BY  d.donatTime DESC
+				) AS Donate
+				<where>
+				<if test="projectTitle != null">
+					Donate.projectTitle LIKE '%${projectTitle}%'
+					or 
+					Donate.recipientName  LIKE '%${projectTitle}%'
+					or 
+					Donate.nickName  LIKE '%${projectTitle}%'
+				</if>
+				</where> -->
+	</select>
+	<!-- 最新的捐款id -->
+	<select id="queryLatestDonateRecordIdList" parameterType="DonateRecord" resultType="DonateRecord">
+			<choose>
+				<when test="state == 2015">
+					SELECT d.id
+					FROM donate_record_2015 d inner join cs_project p on d.projectId=p.id AND p.title not like '%test%'
+					WHERE 
+					d.state = 302 
+					AND d.projectId != 285
+				</when>
+				<when test="state == 2016">
+					SELECT d.id
+					FROM donate_record_2016 d inner join cs_project p on d.projectId=p.id AND p.title not like '%test%'
+					WHERE 
+					d.state = 302 
+					AND d.projectId != 285
+				</when>
+				<when test="state == 2017">
+					SELECT d.id
+					FROM donate_record d inner join cs_project p on d.projectId=p.id AND p.title not like '%test%'
+					WHERE 
+					d.state = 302 
+					AND d.projectId != 285
+					AND date_format(d.donatTime,'%Y') = 2017
+				</when>
+				<!-- 一个月 -->
+				<otherwise>
+					SELECT d.id
+					FROM donate_record d inner join cs_project p on d.projectId=p.id AND p.title not like '%test%'
+					WHERE 
+					d.state = 302 
+					AND d.projectId != 285
+					AND  DATE_SUB(CURDATE(), INTERVAL 30 DAY) &lt;= d.donatTime
+				</otherwise>
+			</choose>
+			ORDER BY d.donatTime DESC
+	</select>
+	<!-- 最新的捐款记录，返回用户头像，姓名等信息，捐款的信息 -->
+	<select id="queryLatestDonateRecordIdDetailList" parameterType="DonateRecord" resultType="DonateRecord">
+			SELECT
+				d.nameOpen,
+				d.id,
+				d.donatAmount,
+				d.donatTime,
+				f.nickName AS nickName,
+				f.userName AS userName,
+				b.url AS coverImageurl,
+				puInfo.realName AS recipientName,
+				p.title AS projectTitle,
+				p.field AS field
+			FROM
+			<choose>
+				<when test="state == 2015">
+					donate_record_2015 d
+				</when>
+				<when test="state == 2016">
+					donate_record_2016 d
+				</when>
+				<when test="state == 2017">
+					donate_record d
+				</when>
+				<!-- 一个月 -->
+				<otherwise>
+					donate_record d
+				</otherwise>
+			</choose>
+			LEFT JOIN frontUser f ON d.userId = f.id
+			LEFT JOIN b_file b ON b.id = f.coverImageId
+			LEFT JOIN cs_project_userInfo puInfo ON d.projectId = puInfo.projectId AND puInfo.personType = 0
+			LEFT JOIN cs_project p ON p.id = d.projectId AND p.title not like '%test%'
+			WHERE
+				d.state = 302
+			AND d.projectId != 285
+			
+			
+			<if test="idList != null">
+            	AND d.id IN 
+           		<foreach collection="idList" index="index" item="item" open="(" separator="," close=")">
+             		#{item}
+            	</foreach>
+			</if>
+			
+			
+			<choose>
+				<when test="state != null">
+					AND date_format(d.donatTime,'%Y') = #{state}
+				</when>
+				<!-- 一个月 -->
+				<otherwise>
+					AND  DATE_SUB(CURDATE(), INTERVAL 30 DAY) &lt;= d.donatTime
+				</otherwise>
+			</choose>
+			ORDER BY d.donatTime DESC
+	</select>
+	<!-- h5我的捐助  捐助项目统计， 助善项目统计-->
+	<select id="queryMyDonate"  parameterType="DonateRecord" resultType="DonateRecord">
+		SELECT
+				*
+			FROM
+				(
+					SELECT
+						t.*
+					FROM
+						(
+							SELECT
+								sum(r.donatAmount) AS totalAmount,
+								count(*) AS donateNum,
+								p.field,
+								p.title AS projectTitle,
+								p.state AS pstate,
+								p.donatAmount AS donatAmountpt,
+								p.donationNum,
+								f.url as coverImageurl,
+								p.cryMoney,
+								r.projectId,
+								r.donatType,
+								cp.realName as userName,
+								max(r.donatTime) as donatTime
+							FROM
+								donate_record r
+							LEFT JOIN cs_project p ON r.projectid = p.id
+							LEFT JOIN b_file f ON p.coverImageId = f.id
+							LEFT JOIN (select cp.realName,cp.projectId from cs_project_userInfo cp where cp.personType = 0) cp on p.id = cp.projectId 
+							WHERE
+								r.donatType != 'goodHelpBack'
+							AND r.userId = #{userId}
+							AND r.state = 302
+							AND r.projectId != 285
+							GROUP BY
+								r.projectId
+						) t
+					UNION ALL
+						SELECT
+							r.donatAmount AS totalAmount,
+							r.donateNum,
+							p.field,
+							p.title AS projectTitle,
+							p.state AS pstate,
+							p.donatAmount AS donatAmountpt,
+							p.donationNum,
+							f.url as coverImageurl,
+							p.cryMoney,
+							g.project_id as projectId,
+							r.donatType,
+							cp.realName as userName,
+							r.donatTime
+						FROM
+							company_GoodHelp g
+						LEFT JOIN (
+							SELECT
+								companyId,
+								sum(donatAmount) AS donatAmount,
+								count(donatAmount) as donateNum,
+								projectId,
+								donatType,
+								donatTime
+							FROM
+								donate_record
+							WHERE
+								donatType = 'enterpriseDonation' and 
+								companyId = (
+									SELECT
+										id
+									FROM
+										company
+									WHERE
+										userId = #{userId}
+								)
+							GROUP BY
+								projectId
+						) AS r ON g.project_id = r.projectId
+						LEFT JOIN cs_project p ON g.project_id = p.id
+						LEFT JOIN b_file f ON p.coverImageId = f.id
+						LEFT JOIN (select cp.realName,cp.projectId from cs_project_userInfo cp where cp.personType = 0) cp on p.id = cp.projectId 
+						WHERE
+							g.userId = #{userId}
+						AND g.payState = 302
+						AND g.callNumber > 0
+						AND r.projectId != 285
+						GROUP BY
+							g.project_id
+				) AS r
+				<where>
+					<if test="pstate != null">
+						and r.pstate = #{pstate}
+					</if>
+				</where>
+			ORDER BY
+				r.donatTime DESC
+	</select>
+	
+	<!-- 统计我的捐助项目数量 -->
+	<select id="countQueryMyDonate"  parameterType="DonateRecord" resultType="integer">
+		SELECT
+				count(*)
+			FROM
+				(
+					SELECT
+						t.*
+					FROM
+						(
+							SELECT
+							
+								p.state AS pstate
+							
+							FROM
+								donate_record r
+							LEFT JOIN cs_project p ON r.projectid = p.id
+							LEFT JOIN b_file f ON p.coverImageId = f.id
+							LEFT JOIN (select cp.realName,cp.projectId from cs_project_userInfo cp where cp.personType = 0) cp on p.id = cp.projectId 
+							WHERE
+								r.donatType != 'goodHelpBack'
+							AND r.userId = #{userId}
+							AND r.state = 302
+							AND r.projectId != 285
+							GROUP BY
+								r.projectId
+						) t
+					UNION ALL
+						SELECT
+						
+							p.state AS pstate
+						
+						FROM
+							company_GoodHelp g
+						LEFT JOIN (
+							SELECT
+								companyId,
+								sum(donatAmount) AS donatAmount,
+								count(donatAmount) as donateNum,
+								projectId,
+								donatType,
+								donatTime
+							FROM
+								donate_record
+							WHERE
+								donatType = 'enterpriseDonation' and 
+								companyId = (
+									SELECT
+										id
+									FROM
+										company
+									WHERE
+										userId = #{userId}
+								)
+							GROUP BY
+								projectId
+						) AS r ON g.project_id = r.projectId
+						LEFT JOIN cs_project p ON g.project_id = p.id
+						LEFT JOIN b_file f ON p.coverImageId = f.id
+						LEFT JOIN (select cp.realName,cp.projectId from cs_project_userInfo cp where cp.personType = 0) cp on p.id = cp.projectId 
+						WHERE
+							g.userId = #{userId}
+						AND g.payState = 302
+						AND g.callNumber > 0
+						AND r.projectId != 285
+						GROUP BY
+							g.project_id
+				) AS r
+				<where>
+					<if test="pstate != null">
+						and r.pstate = #{pstate}
+					</if>
+				</where>
+	
+	</select>
+	
+	
+	<select id="queryWeixinPayNoticeByTranNum" parameterType="string" resultType="DonateRecord">
+
+	SELECT fu.nickName AS 'nickName',tu.accountNum AS 'openId',cp.title as 'projectTitle',dr.*
+		FROM 
+	(SELECT *
+	FROM capitalinout c 
+	WHERE c.tranNum = #{tranNum} ) cu
+	LEFT JOIN donate_record dr ON dr.capitalinoutId = cu.id
+	LEFT JOIN cs_project cp ON dr.projectId = cp.id
+	LEFT JOIN frontUser fu ON dr.userId = fu.id
+	LEFT JOIN thirdUser tu ON dr.userId = tu.userId
+	</select>
+	
+	<select id="queryBatchWeixinPayNoticeByTranNum" parameterType="string" resultType="DonateRecord">
+		SELECT fu.nickName AS 'nickName',tu.accountNum AS 'openId',cp.title as 'projectTitle',dr.*
+			FROM 
+		(SELECT *
+		FROM capitalinout c 
+		WHERE c.tranNum = #{tranNum} ) cu
+		LEFT JOIN donate_record dr ON dr.capitalinoutId = cu.id
+		LEFT JOIN cs_project cp ON dr.projectId = cp.id
+		LEFT JOIN frontUser fu ON dr.userId = fu.id
+		LEFT JOIN thirdUser tu ON dr.userId = tu.userId
+		where dr.projectId = 285
+	</select>
+	
+	
+	<!-- 根据支付号查找订单信息 -->
+	<select id="queryPayNoticeByTranNum" parameterType="string" resultType="DonateRecord">
+
+		SELECT
+			cp.tranNum,
+			d.donatTime,
+			d.donatAmount,
+			p.title as projectTitle,
+			f.nickName,
+			d.userId,
+			d.projectId,
+			d.state,
+			cp.userId as leaveWord,
+			f.coverImageId
+		FROM
+			(
+				SELECT
+					*
+				FROM
+					capitalinout c
+				WHERE
+					c.tranNum = #{tranNum}
+			) AS cp
+		LEFT JOIN donate_record d ON cp.id = d.capitalinoutId
+		LEFT JOIN cs_project p ON d.projectId = p.id
+		LEFT JOIN frontUser f ON d.userId = f.id
+		
+	</select>
+	
+	<!-- 根据支付号查找订单信息 企业 余额不足情况的支付-->
+	<select id="queryPayNoticeByPayNum" parameterType="string" resultType="DonateRecord">
+
+		SELECT
+			cp.tranNum,
+			d.donatTime,
+			d.donatAmount,
+			p.title as projectTitle,
+			f.nickName,
+			d.userId,
+			d.projectId
+		FROM
+			(
+				SELECT
+					*
+				FROM
+					capitalinout c
+				WHERE
+					c.payNum = #{tranNum}
+			) AS cp
+		LEFT JOIN donate_record d ON cp.id = d.capitalinoutId
+		LEFT JOIN cs_project p ON d.projectId = p.id
+		LEFT JOIN frontUser f ON d.userId = f.id
+		
+	</select>
+	<!-- 用户捐款统计排除善库和红包 -->
+	<select id="countDonateByUser" parameterType="integer" resultType="DonateRecord">
+		SELECT
+			COUNT(*) AS donateNum,
+			SUM(donatAmount) AS totalAmount,
+			COUNT(DISTINCT(d.projectId)) AS donationNum
+		FROM
+			donate_record d
+		INNER JOIN capitalinout c ON c.id = d.capitalinoutId
+		AND c.inType != 8
+		WHERE
+			d.userId = #{0} AND d.projectId != 285
+		AND d.state = 302
+		AND d.goodLibraryId IS NULL
+	</select>
+	<!-- 通过用户id统计捐赠项目数 -->
+	<select id="countProjectNumByUserId" parameterType="integer" resultType="integer">
+		SELECT
+					COUNT(DISTINCT(d.projectId))
+				FROM
+					donate_record d
+				INNER JOIN cs_project p ON p.id = d.projectId AND p.id != 285
+				INNER JOIN frontUser f ON f.id = d.userId
+				LEFT JOIN cs_project_area pa ON pa.projectId = d.projectId 
+				where
+					d.state = 302
+				AND (
+					d.userId = #{userId}
+					OR d.goodLibraryId IN (
+						SELECT
+							gl.id
+						FROM
+							cs_good_library gl
+						WHERE
+							gl.userId = #{userId}
+					)
+					OR d.id IN (
+						SELECT
+							ur.donateRecordId
+						FROM
+							user_redpackets ur
+						INNER JOIN redpackets r ON r.id = ur.redpackets_id
+						WHERE
+							r.userId = #{userId}
+						AND ur.`status` = 402
+					)
+				)
+				AND d.id NOT IN (
+					SELECT
+						d.id
+					FROM
+						donate_record d
+					INNER JOIN capitalinout c ON c.id = d.capitalinoutId
+					AND c.inType = 8
+					WHERE
+						d.userId = #{userId}
+				)
+	</select>
+	<select id="queryDonateRecordByParam" parameterType="DonateRecord" resultType="DonateRecord">
+		SELECT
+			temp.*, pu.realName,pu.familyAddress
+		FROM
+			(
+				SELECT
+					d.id,d.projectId,d.goodLibraryId,d.userId,d.donatAmount,d.donatTime,p.title AS projectTitle,f.nickName,
+					p.tag,p.field,pa.province,pa.city,pa.area
+				FROM
+					donate_record d
+				INNER JOIN cs_project p ON p.id = d.projectId
+				AND p.id != 285
+				INNER JOIN frontUser f ON f.id = d.userId
+				LEFT JOIN cs_project_area pa ON pa.projectId = d.projectId
+				<where>
+					d.state = 302
+				AND (
+					d.userId = #{userId}
+					OR d.goodLibraryId IN (
+						SELECT
+							gl.id
+						FROM
+							cs_good_library gl
+						WHERE
+							gl.userId = #{userId}
+					)
+					OR d.id IN (
+						SELECT
+							ur.donateRecordId
+						FROM
+							user_redpackets ur
+						INNER JOIN redpackets r ON r.id = ur.redpackets_id
+						WHERE
+							r.userId = #{userId}
+						AND ur.`status` = 402
+					)
+				)
+				AND d.id NOT IN (
+					SELECT
+						d.id
+					FROM
+						donate_record d
+					INNER JOIN capitalinout c ON c.id = d.capitalinoutId
+					AND c.inType = 8
+					WHERE
+						d.userId = #{userId}
+				)
+				AND d.id NOT IN (
+					SELECT
+						d.id
+					FROM
+						donate_record d
+					WHERE
+						d.userId = #{userId}
+					AND d.goodLibraryId IS NOT NULL
+					AND d.id NOT IN (
+						SELECT
+							d.id
+						FROM
+							donate_record d
+						INNER JOIN (
+							SELECT
+								g.id
+							FROM
+								cs_good_library g
+							WHERE
+								g.userId = #{userId}
+						) gl ON gl.id = d.goodLibraryId
+						WHERE
+							d.userId = #{userId}
+						AND d.goodLibraryId IS NOT NULL
+					)
+				)
+				<if test="donatTimeStr != null">
+					AND YEAR(d.donatTime) = #{donatTimeStr}
+				</if>
+				</where>
+			) temp
+		LEFT JOIN cs_project_userInfo pu ON pu.projectId = temp.projectId
+		AND pu.personType = 0
+		ORDER BY
+			temp.donatTime DESC
+	</select>
+	
+	<select id="queryByParamUserId"  parameterType="DonateRecord" resultType="DonateRecord">
+		select DISTINCT(projectId) from donate_record
+		<where>
+			<if test="state != null">
+				 and state = #{state} 
+			</if>
+			<if test="userId != null">
+				and userId = #{userId}
+			</if>
+ 		</where>
+ 		<choose>
+			<when test="orderBy !=null and orderBy !=''">
+				 order by #{orderBy}  <if test="orderDirection != null and orderDirection != ''">#{orderDirection}</if>
+			</when>
+			<otherwise>
+				order by donatTime DESC
+			</otherwise>
+		</choose>
+	</select>
+	<!-- 统计某个项目的捐款人数（一个用户多次捐算一次） -->
+	<select id="countDistDonateUserNum" parameterType="integer" resultType="integer">
+		select count(DISTINCT(userId)) from donate_record where state=302 and projectId=#{project}
+	</select>
+	<!-- 统计某个项目的捐款，同一用户的捐款累加 -->
+	<select id="queryByParamBycount"  parameterType="DonateRecord" resultType="DonateRecord">
+		select * from (
+		select 
+		    u.username, u.nickName,u.coverImageId,t.donatTime,t.userId,t.donatAmount
+		from
+		    (select p.field,p.title as projectTitle,p.state as pstate,p.donatAmount as donatAmountpt ,p.cryMoney, r.donatTime, r.userId,sum(r.donatAmount) as donatAmount from donate_record r, cs_project p where r.projectid = p.id 
+<!--		    	and r.donatType not  in ('enterpriseDonation','goodHelpBack')-->
+					and r.donatType !='goodHelpBack'
+			  <if test="projectId != null"> and r.projectId=#{projectId} </if>
+			  <if test="field != null"> and p.field=#{field} </if>
+			  <if test="donatType != null"> and r.donatType = #{donatType} </if>
+			  <if test="state != null"> and r.state=#{state}</if>
+			  GROUP BY r.userId
+		    ) t,
+		    frontUser u
+		<where>
+		    t.userId = u.id
+		    <if test="userId != null and userId != 0">
+		    	and t.userId = #{userId}
+		    </if>
+		    <if test="extensionPeople != null and extensionPeople != 0">
+		    	and t.extensionPeople = #{extensionPeople}
+		    </if>
+		    
+ 			<if test="id != null and id != 0">
+				and t.id = #{id}
+			</if>
+			<if test="capitalinoutId != null">
+				 and t.capitalinoutId = #{capitalinoutId} 
+			</if>
+			
+			<if test="queryStartDate != null">
+				 and t.donatTime &gt;= #{queryStartDate} 
+			</if>
+			<if test="queryEndDate != null">
+				 and t.donatTime &lt;= #{queryEndDate} 
+			</if>
+ 		</where>
+ 		) as t 
+ 		<choose>
+			<when test="orderBy !=null and orderBy !=''">
+				 order by ${orderBy}  <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+			</when>
+			<otherwise>
+				order by t.donatTime DESC
+			</otherwise>
+		</choose>
+	</select>
+	<!-- 统计上周捐款排行 -->
+	<select id="countDonateByWeek" parameterType="DonateRecord" resultType="DonateRecord">
+		SELECT userId,sum(donatAmount) as donatAmount,coverImageId,userName,nickName FROM donate_record d INNER JOIN frontUser u on d.userId =u.id 
+		<where>
+			YEARWEEK(date_format(donatTime,'%Y-%m-%d')) =YEARWEEK(now())-1 and state=302
+			<!-- donatTime &gt;='2016-12-26' and donatTime &lt;'2017-1-2' and state=302 -->
+			<if test="donateCopies!=0 and donateCopies != null">
+				GROUP BY userId 
+			</if>
+		</where>
+		 ORDER BY sum(donatAmount) desc
+	</select>
+	<!-- 统计上月捐款排行 -->
+	<select id="countDonateByMonth" parameterType="DonateRecord" resultType="DonateRecord">
+		SELECT userId,sum(donatAmount) as donatAmount,coverImageId,userName,nickName FROM donate_record d INNER JOIN frontUser u on d.userId =u.id 
+		<where>
+			PERIOD_DIFF( date_format( now() , '%Y%m' ) , date_format( donatTime, '%Y%m' ) ) =1 and state=302
+			<!-- donatTime &gt;='2016-12-1' and donatTime &lt;'2017-1-1' and state=302 -->
+			<if test="donateCopies!=0 and donateCopies != null">
+				GROUP BY userId 
+			</if>
+		</where>
+		ORDER BY sum(donatAmount) desc
+	</select>
+	<!-- 统计本年捐款排行 -->
+	<select id="countDonateByYear" parameterType="DonateRecord" resultType="DonateRecord">
+		<!-- SELECT userId,sum(donatAmount) as donatAmount,coverImageId,userName,nickName 
+			FROM donate_record_temp d FORCE INDEX(idx_uid_dmount_dTime_mix)
+			LEFT JOIN frontUser u on d.userId =u.id 
+		<where>
+			donatTime BETWEEN '2016-1-1' and '2016-12-31' and state=302
+			<if test="donateCopies!=0 and donateCopies != null">
+				GROUP BY userId 
+			</if>
+		</where>
+		ORDER BY sum(donatAmount) DESC -->
+		
+		SELECT userId,sum(donatAmount) as donatAmount,coverImageId,userName,nickName FROM donate_record d INNER JOIN frontUser u on d.userId =u.id 
+		<where>
+			donatTime BETWEEN '2017-1-1' and '2017-12-31' and state=302
+			<if test="donateCopies!=0 and donateCopies != null">
+				GROUP BY userId 
+			</if>
+		</where>
+		ORDER BY sum(donatAmount) desc
+	</select>
+	
+	<select id="queryDonateBy15"  parameterType="integer" resultType="DonateRecord">
+		/*select u.nickName,u.longitude,u.latitude,u.totalAmount as donatAmountpt ,pu.realName  from frontUser u INNER JOIN donate_record d on
+		d.userId = u.id INNER JOIN cs_project_userInfo pu on d.projectId = pu.projectId where donatTime>date_sub(NOW(),interval 900 second)
+		and d.state=302 and pu.personType=0*/
+		  select u.nickName,u.longitude,u.latitude,u.totalAmount as donatAmountpt ,pu.realName,d.id  from frontUser u INNER JOIN donate_record d on
+		d.userId = u.id LEFT JOIN cs_project_userInfo pu on (d.projectId = pu.projectId and pu.personType=0)
+ 		where  d.state=302
+		 ORDER BY id desc limit 100
+	</select>
+	
+	<!-- 根据项目id查询捐款人昵称、头像 -->
+	<select id="queryDonateHeadImgByProjectId" parameterType="integer" resultType="DonateRecord">
+		SELECT u.coverImageId,u.nickName from donate_record d LEFT JOIN frontUser u on d.userId=u.id WHERE d.projectId=#{projectId} AND d.state=302 GROUP BY d.userId
+	</select>
+	
+	<!-- 查询项目日捐详情 -->
+	<select id="queryDayDonateDetail" parameterType="integer" resultType="DonateRecord">
+		SELECT u.coverImageId,u.nickName FROM donate_record d LEFT JOIN frontUser u on d.userId=u.id 
+		WHERE state = 302 AND projectId = #{projectId} AND donatType = 'daylyDonation' 
+		GROUP BY d.userId ORDER BY donatTime DESC
+	</select>
+	
+	<!-- 根据tradeNo查询捐款信息 -->
+	<select id="queryDonateInfoByTradeNo" parameterType="string" resultType="DonateRecord">
+		SELECT
+			p.id AS projectId,
+			p.title AS projectTitle,
+			d.donatAmount,
+			d.donatTime,
+			u.nickName,
+			u.coverImageId,
+			d.leaveWord,
+			u.MobileNum as outDonor
+		FROM
+			donate_record d
+		LEFT JOIN capitalinout c ON d.capitalinoutId = c.id
+		LEFT JOIN cs_project p ON d.projectId = p.id
+		LEFT JOIN frontUser u ON d.userId = u.id
+		WHERE
+			c.tranNum = #{tradeNo}
+			AND d.state = 302
+			AND c.payState = 302
+	</select>
+	
+	<!-- 根据tradeNum查询步捐信息 -->
+	<select id="queryDonateStepByTranNum" parameterType="string" resultType="DonateRecord">
+		SELECT
+			u.nickName,
+			d.extensionPeople,
+			p.id as projectId,
+			p.title as projectTitle,
+			p.coverImageId as extensionEnabled,
+			d.donatAmount,
+			u.coverImageId
+		FROM
+			donate_record d
+		LEFT JOIN capitalinout c ON d.capitalinoutId = c.id
+		LEFT JOIN cs_project p ON d.projectId = p.id
+		LEFT JOIN frontUser u ON d.userId = u.id
+		WHERE
+			c.tranNum = #{tradeNo}
+	</select>
+	
+	<!-- 根据tradeNum查询步捐信息 -->
+	<select id="queryStepProjectByParam" parameterType="DonateRecord" resultType="DonateRecord">
+		SELECT
+			sum(donatAmount) AS totalAmount,
+			count(DISTINCT(d.userId)) AS goodHelpCount,
+			sum(w.stepCount) AS donateNum
+		FROM
+			donate_record d
+		LEFT JOIN capitalinout c ON d.capitalinoutId = c.id
+		LEFT JOIN werundata w ON c.tranNum = w.orderNum
+		WHERE
+			d.projectId = #{projectId}
+		AND d.extensionPeople = #{extensionPeople}
+		AND state = 302
+		AND w.donateState = 101
+	</select>
+	
+	<!-- 根据年查询捐款记录行数 -->
+	<select id="countDonateRecord" parameterType="map" resultType="int">
+    	  select count(d.state) from
+    	  <choose>
+				<when test="state == 2015">
+					donate_record_2015 d
+				</when>
+				<when test="state == 2016">
+					donate_record_2016 d
+				</when>
+				<when test="state == 2017">
+					donate_record d
+				</when>
+				<otherwise>
+					donate_record d
+				</otherwise>
+			</choose>
+			<if test="title != null and title != ''">
+				LEFT JOIN frontUser f ON d.userId = f.id LEFT JOIN b_file b ON b.id = f.coverImageId 
+				LEFT JOIN cs_project_userInfo puInfo ON d.projectId = puInfo.projectId AND puInfo.personType = 0 
+				LEFT JOIN cs_project p ON p.id = d.projectId
+			</if>
+			where  d.projectId != 285 AND d.state = 302
+			<choose>
+				<when test="state != null">
+					AND date_format(d.donatTime,'%Y') = #{state}
+				</when>
+				<!-- 一个月 -->
+				<otherwise>
+					AND  DATE_SUB(CURDATE(), INTERVAL 30 DAY) &lt;= d.donatTime
+				</otherwise>
+			</choose>
+			<if test="title != null and title != ''">
+				AND (p.title LIKE '%${title}%' or 
+					puInfo.realName  LIKE '%${title}%' or 
+					f.nickName  LIKE '%${title}%');
+			</if>
+    </select>
+    
+    <!-- 根据项目Id、teamId查询团队成员捐款信息 -->
+	<select id="queryYiXingTeamDonate" parameterType="TogetherConfig" resultType="DonateRecord">
+		select d.*,u.username,u.nickName,u.coverImageId from donate_record d 
+		LEFT JOIN frontUser u on d.userId = u.id
+		<where> d.extensionPeople in 
+			(select * from 
+				(select userId from together_config a
+				where a.id = #{teamId}
+				union
+				select userId from together_config b
+				where b.projectId = #{projectId} and b.id = #{teamId}
+				) t
+			) 
+			and d.projectId = #{projectId}
+			and d.state=302 
+		</where>
+		order by d.id DESC
+	</select>
+	
+	<!-- 根据用户Id查询有留言的捐款记录 -->
+	<select id="queryByUserIdSelectLeaveWord" parameterType="map" resultType="DonateRecord">
+		SELECT d.id,f.coverImageId,f.nickName,d.donatAmount,d.projectId,p.title projectTitle,p.coverImageId AS projectImageId,d.donatTime FROM donate_record d
+			LEFT JOIN newLeaveWord n on n.projectDonateId= d.id
+			LEFT JOIN cs_project p ON p.id=d.projectId
+			LEFT JOIN frontUser f ON f.id=d.userId
+			WHERE d.state = 302 and d.userId = #{userId} and d.id in (
+			select DISTINCT projectDonateId from newLeaveWord 
+			<where>
+				projectDonateId in (
+				select id from donate_record where userId=#{userId} and state = 302)
+				and state = 203
+				<if test="isRead != null">
+				 	and isRead = #{isRead} 
+				</if>
+			</where> )
+			GROUP BY d.id
+			ORDER BY d.donatTime desc
+	</select>
+	
+	<!-- 将项目id按最新捐款排序 -->
+	<select id="queryLastDonateProjectIds" parameterType="list" resultType="map">
+		SELECT
+			projectId
+		FROM
+			donate_record
+		WHERE
+			state = 302
+		<if test="ids != null">
+			and projectId in
+			<foreach item="item" index="index" collection="ids"
+					 open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		GROUP BY
+			projectId
+		ORDER BY
+			max(donatTime) DESC
+	</select>
+	
+	<!-- 根据用户Id查询捐赠日期 -->
+	<select id="queryByUserIdForDonateTime" parameterType="map" resultType="DonateRecord">
+		select DATE_FORMAT( donatTime, "%Y-%m-%d" ) as donateDay from donate_record 
+		<where> state=302 
+			<if test="userId != null">
+		    	and userId = #{userId}
+		    </if>
+		    <if test="goodLibraryId != null">
+		    	and goodLibraryId = #{goodLibraryId}
+		    </if>
+		</where>
+			GROUP BY DATE_FORMAT( donatTime, "%Y-%m-%d" )
+		
+		ORDER BY donatTime DESC 
+	</select>
+	
+	<!-- 根据日期查询捐款记录详情 -->
+	<select id="queryByDonateTimeForInfo" parameterType="map" resultType="DonateRecord">
+		select c.inType,c.payType,d.donatAmount,d.donatType,p.title as projectTitle,p.id AS projectId,d.leaveWord,c.tranNum from donate_record d 
+			LEFT JOIN capitalinout c on d.capitalinoutId = c.id 
+			LEFT JOIN cs_project p on p.id =d.projectId
+		where 
+			DATE_FORMAT( d.donatTime, "%Y-%m-%d" ) = #{donateDay}
+		and d.state =302 AND d.userId = #{userId}
+		ORDER BY d.donatTime DESC
+	</select>
+	
+	<!-- 根据捐赠类型和时间查询详情 -->
+	<select id="queryByDonateTimeParam" parameterType="map" resultType="DonateRecord">
+		select c.inType,c.payType,d.donatAmount,d.donatType,p.title as projectTitle,p.id AS projectId,d.leaveWord from donate_record d 
+			LEFT JOIN capitalinout c on d.capitalinoutId = c.id 
+			LEFT JOIN cs_project p on p.id =d.projectId
+		<where>
+			d.state =302
+			<if test="donateDay != null and donateDay != ''">
+		    	and DATE_FORMAT( d.donatTime, "%Y-%m-%d" ) = #{donateDay}
+		    </if>
+		    <if test="userId != null">
+		    	and d.userId = #{userId}
+		    </if>
+		    <if test="donatType != null and donatType != ''">
+		    	and d.donatType = #{donatType}
+		    </if>
+		    <if test="inType != null and inType != '' and tranNum != null and tranNum != ''">
+		    	and c.inType = #{inType} and p.id !=285 and c.tranNum = #{tranNum}
+		    </if>
+		</where> 
+		ORDER BY d.donatTime DESC
+	</select>
+	
+	<!-- 根据日期查询善库人员捐款记录详情 -->
+	<select id="queryByDonateTimeForGoodLibrary" parameterType="map" resultType="DonateRecord">
+		select d.donatAmount,p.title as projectTitle,p.id AS projectId,f.coverImageId,f.nickName from donate_record d 
+			LEFT JOIN cs_project p on p.id =d.projectId
+			LEFT JOIN frontUser f ON d.userId = f.id
+		where 
+			DATE_FORMAT( d.donatTime, "%Y-%m-%d" ) = #{donateDay}
+		and d.state =302 and p.id !=285 AND d.goodLibraryId=#{goodLibraryId}
+		ORDER BY d.donatTime DESC
+	</select>
+
+	<!-- 根据条件查询捐款人数 -->
+	<select id="countByDonateRecordParam" parameterType="DonateRecord" resultType="int">
+		select count(DISTINCT(userId)) from donate_record
+		<where>
+			<if test="projectId != null">
+				and projectId =#{projectId}
+			</if>
+			<if test="extensionPeople != null">
+				and extensionPeople =#{extensionPeople}
+			</if>
+			<if test="userId != null">
+				and userId =#{userId}
+			</if>
+		</where>
+	</select>
+
+	<!-- 查询项目推荐人捐款记录 -->
+	<select id="queryDonateRecordByEp" parameterType="DonateRecord" resultType="DonateRecord">
+		SELECT
+			r.extensionPeople,
+			u.nickName,
+			u.coverImageId,
+			SUM(r.donatAmount) totalAmount,
+			count(DISTINCT(r.userId)) donationNum
+		FROM
+			donate_record r
+		INNER JOIN frontUser u ON r.extensionPeople = u.id
+		WHERE
+			r.donatType != 'goodHelpBack'
+			AND r.projectId != 285
+			AND r.state = 302
+		<if test="projectId != null">
+			AND r.projectId = #{projectId}
+		</if>
+		<if test="userId == null">
+			<if test="extensionPeople != null">
+				AND r.extensionPeople = #{extensionPeople}
+			</if>
+			AND r.extensionPeople IS NOT NULL
+			GROUP BY
+			r.extensionPeople
+			ORDER BY
+			SUM(r.donatAmount) DESC
+		</if>
+		<if test="userId != null">
+			AND r.userId = #{userId}
+			AND r.extensionPeople IS NULL
+			GROUP BY
+			r.userId
+			ORDER BY
+			SUM(r.donatAmount) DESC
+		</if>
+	</select>
+
+	<!-- 根据用户id查询有效推广项目数 -->
+	<select id="countEpProject" resultType="int" parameterType="int">
+		select count(DISTINCT(d.projectId)) from donate_record d where d.extensionPeople = #{userId} and d.state=302
+	</select>
+	
+	<select id="queryDonateRecordSuccess" parameterType="DonateRecord" resultType="DonateRecord">
+		SELECT d.*,bf1.middleUrl AS coverImageUrl,bf2.middleUrl AS projectImageUrl FROM donate_record d
+		LEFT JOIN frontUser f ON f.id = d.userId
+		LEFT JOIN cs_project p ON p.id = d.projectId
+		LEFT JOIN b_file bf1 ON bf1.id = f.coverImageId
+		LEFT JOIN b_file bf2 ON bf2.id = p.coverImageId
+			<where>
+				<if test="tranNum != null">
+					and d.tranNum =#{tranNum}
+				</if>
+			</where>
+	</select>
+	
+	<select id="selectDonateRecordForInvoice"  parameterType="DonateRecord" resultType="DonateRecord">
+  		select id,donatAmount  from donate_record
+		<where>
+			state = 302
+			<if test="donateIds != null">
+				AND  id in
+				<foreach collection="donateIds" index="index" item="item" open="(" separator="," close=")">  
+		            #{item}   
+		   		 </foreach> 
+			</if>
+			<if test="userId != null">
+				and userId = #{userId}
+			</if>
+		</where>
+  	</select>
+
+</mapper>

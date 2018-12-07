@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.ProjectFeedbackMapper">
+
+	<insert id="save" parameterType="ProjectFeedback"  useGeneratedKeys="true"  keyProperty="id">
+		insert  into projectFeedback
+		(
+			projectId,
+			activityId,
+			feedbackPeople,
+			content,
+			auditState,
+			contentImageId,
+			audit,
+			source,
+			praise 
+		)
+		values
+		(
+			#{projectId},
+			#{activityId},
+			#{feedbackPeople},
+			#{content},
+			#{auditState},
+			#{contentImageId},
+			#{audit},
+			#{source},
+			#{praise}
+		)
+		
+	</insert>
+	
+	<update id="update" parameterType="ProjectFeedback">
+		update projectFeedback
+		<set>
+			<if test="projectId != null">
+				projectId = #{projectId},
+			</if>
+			<if test="activityId != null">
+				activityId = #{activityId},
+			</if>
+			<if test="content != null">
+				content = #{content},
+			</if>
+			
+			<if test="contentImageId != null">
+				contentImageId = #{contentImageId},
+			</if>
+			<if test="feedbackTime != null">
+				feedbackTime = #{feedbackTime},
+			</if>
+			
+			<if test="audit != null">
+				audit = #{audit},
+			</if>
+			<if test="auditState != null">
+				auditState = #{auditState},
+			</if>
+			<if test="praise != null">
+				praise = #{praise},
+			</if>
+		</set>
+		<where>
+			id = #{id}  
+		</where>
+	</update>
+	
+	<select id="queryByParam"  resultType="ProjectFeedback"  parameterType="ProjectFeedback">
+	
+		SELECT
+			p.*, f.userName,
+			f.nickName,
+			b.url as headImageUrl
+		FROM
+			projectFeedback p
+		LEFT JOIN frontUser f ON p.feedbackPeople = f.id
+		LEFT JOIN b_file b ON f.coverImageId = b.id	
+			<where>
+				p.audit IS NULL
+				<if test="id != null">
+					and p.id = #{id}
+				</if>
+				<if test="projectId != null">
+					and projectId = #{projectId}
+				</if>
+				<if test="activityId != null">
+					and activityId = #{activityId}
+				</if>
+				<if test="feedbackPeople != null">
+					and feedbackPeople = #{feedbackPeople}
+				</if>	
+				
+				<if test="audit != null">
+					and audit = #{audit}
+				</if>
+				<if test="auditState != null">
+					and auditState = #{auditState}
+				</if>
+			</where>
+		order  by feedbackTime  DESC
+			
+	</select>
+	
+	<select id="queryCountByParam"  resultType="Integer"  parameterType="ProjectFeedback">
+	
+		select  count(*)  from  projectFeedback 
+			<where>
+				
+				<if test="projectId != null">
+					and projectId = #{projectId}
+				</if>
+				<if test="feedbackPeople != null">
+					and feedbackPeople = #{feedbackPeople}
+				</if>	
+				
+				<if test="audit != null">
+					and audit = #{audit}
+				</if>
+				<if test="auditState != null">
+					and auditState = #{auditState}
+				</if>
+			</where>
+		
+	</select>
+	
+	
+	<select id="queryCareProjectFeedbackList"  resultType="ProjectFeedback"  parameterType="ProjectFeedback">
+	
+		SELECT  b.*, p.title,p.field,f.coverImageId as headImageId,bf.url as headImageUrl,f.realName as userName ,l.userType from  
+		(
+		
+		select *  from projectFeedback pb  
+			<where>
+				pb.projectId in (select DISTINCT projectId from donate_record where userId = #{feedbackPeople}  and state = 302 and projectId != 285)
+				<if test="queryStartDate != null">
+					 and pb.feedbackTime &gt;= #{queryStartDate} 
+				</if>
+				<if test="queryEndDate != null">
+					 and pb.feedbackTime &lt;= #{queryEndDate} 
+				</if>
+				<if test="projectId != null">
+					and pb.projectId = #{projectId}
+				</if>
+			</where> 
+		
+		)  as b left join cs_project p  on b.projectId = p.id left join frontUser f on f.id = b.feedbackPeople LEFT JOIN   b_file bf on bf.id = f.coverImageId
+		
+		LEFT JOIN loveGroupMent l on b.projectId = l.projectId and b.feedbackPeople = l.userId
+		
+		ORDER BY b.feedbackTime desc 
+			
+	</select>
+	
+	<!--h5的项目反馈的数据显示  -->
+	<select id="queryH5ProjectFeedbackList"  resultType="ProjectFeedback"  parameterType="ProjectFeedback">
+	
+		SELECT distinct b.*, p.title,f.coverImageId as headImageId,bf.url as headImageUrl,f.realName as userName,f.nickName from
+		(
+		
+		select *  from projectFeedback pb  
+			<where>
+				<if test="queryStartDate != null">
+					 and pb.feedbackTime &gt;= #{queryStartDate} 
+				</if>
+				<if test="queryEndDate != null">
+					 and pb.feedbackTime &lt;= #{queryEndDate} 
+				</if>
+				<if test="projectId != null">
+					and pb.projectId = #{projectId}
+				</if>
+				<if test="activityId != null">
+					and pb.activityId = #{activityId}
+				</if>
+			</where> 
+		
+		)  as b left join cs_project p  on b.projectId = p.id left join frontUser f on f.id = b.feedbackPeople LEFT JOIN   b_file bf on bf.id = f.coverImageId
+		
+		ORDER BY b.feedbackTime desc 
+			
+	</select>
+	
+	<select id="countCareProjectFeedbackList"  resultType="Integer"  parameterType="ProjectFeedback">
+	
+		SELECT  count(*) from  
+		(
+		
+		select *  from projectFeedback pb  
+			<where>
+				pb.projectId in (select DISTINCT projectId from donate_record where userId = #{feedbackPeople}  and state = 302)
+				<if test="queryStartDate != null">
+					 and pb.feedbackTime &gt;= #{queryStartDate} 
+				</if>
+				<if test="queryEndDate != null">
+					 and pb.feedbackTime &lt;= #{queryEndDate} 
+				</if>
+				<if test="projectId != null">
+					and pb.projectId = #{projectId}
+				</if>
+			</where> 
+		
+		)  as b left join cs_project p  on b.projectId = p.id left join frontUser f on f.id = b.feedbackPeople LEFT JOIN   b_file bf on bf.id = f.coverImageId
+		
+		LEFT JOIN loveGroupMent l on b.projectId = l.projectId and b.feedbackPeople = l.userId
+		
+		ORDER BY b.feedbackTime desc 
+			
+	</select>
+	<!-- h5首页查询项目反馈和项目执行进度 -->
+	<select id="queryFeedbackAndReportList" resultType="ProjectFeedback">
+		(
+		SELECT DISTINCT
+			b.*, bf.url AS headImageUrl,
+			f.realName AS userName
+		FROM
+			(
+				SELECT
+					pb.projectId,
+					pb.contentImageId,
+					pb.feedbackPeople,
+					pb.feedbackTime,
+					pb.content
+				FROM
+					projectFeedback pb
+				WHERE
+					pb.auditState = 203
+			) AS b
+		LEFT JOIN frontUser f ON f.id = b.feedbackPeople
+		LEFT JOIN b_file bf ON bf.id = f.coverImageId
+		ORDER BY
+			b.feedbackTime DESC
+	)
+	UNION
+		(
+			SELECT
+				r.projectId,
+				r.contentImageId,
+				r.reportPeople AS feedbackPeople,
+				r.operatorTime AS feedbackTime,
+				r.content,
+				bf.url AS headImageUrl,
+				u.realName AS userName
+			FROM
+				report r
+			LEFT JOIN frontUser u ON r.reportPeople = u.id
+			LEFT JOIN b_file bf ON bf.id = u.coverImageId
+			WHERE
+				r.type IN (4, 6)
+			ORDER BY
+				feedbackTime DESC
+		)
+	ORDER BY
+		feedbackTime DESC
+	</select>
+	
+	<select id="queryById"  resultType="ProjectFeedback"  parameterType="Integer">
+	
+		select  *  from  projectFeedback where id = #{id}
+		
+	</select>
+	
+	<!-- 根据用户Id查询反馈信息项目信息 -->
+	<select id="queryH5ProjectFeedbackByUserList"  resultType="ProjectFeedback"  parameterType="Integer">
+		SELECT b.contentImageId,b.content,b.feedbackTime,b.id,b.projectId,p.title,p.coverImageId AS projectImageId,f.nickName,f.coverImageId AS headImageId from projectFeedback b 
+			LEFT JOIN cs_project p on b.projectId = p.id 
+			LEFT JOIN frontUser f on f.id = b.feedbackPeople
+			where projectId in (select DISTINCT projectId from donate_record d where userId=#{userId} and state = 302)
+		ORDER BY b.feedbackTime desc
+	</select>
+</mapper>

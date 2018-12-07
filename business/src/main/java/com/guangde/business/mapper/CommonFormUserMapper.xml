@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.CommonFormUserMapper">
+	<insert id="save" parameterType="CommonFormUser" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO cs_common_form_user (
+		  formId,
+		  userId,
+		  nickName,
+		  optionId,
+		  optionName,
+		  optionValue,
+		  createTime,
+		  updateTime
+		)
+		VALUES(
+		  #{formId},
+		  #{userId},
+		  #{nickName},
+		  #{optionId},
+		  #{optionName},
+		  #{optionValue},
+		  #{createTime},
+		  #{updateTime}
+		)
+	</insert>
+	
+	<select id="queryByParam" resultType="CommonFormUser" parameterType="CommonFormUser">
+		select * from cs_common_form_user
+		<where>
+			<if test="userId != null">
+				and userId = #{userId}
+			</if>
+			<if test="formId != null">
+				and formId = #{formId}
+			</if>
+		</where>
+	</select>
+</mapper>

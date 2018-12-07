@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.FrontUserAddressMapper">
+	<insert id="save" parameterType="FrontUser_address"  useGeneratedKeys="true" keyProperty="id">
+		insert into frontUser_address
+		(
+			id,
+			userId,
+			`name`,
+			mobile,
+			province,
+			city,
+			area,
+			detailAddress,
+			createTime,
+			lastUpdateTime,
+			email,
+			code,
+			isSelected
+		)
+		values
+		(
+			#{id},
+			#{userId},
+			#{name},
+			#{mobile},
+			#{province},
+			#{city},
+			#{area},
+			#{detailAddress},
+			#{createTime},
+			#{lastUpdateTime},
+			#{email},
+			#{code},
+			#{isSelected}
+		)
+	</insert>
+	
+	<update id="update" parameterType="FrontUser_address">
+		update frontUser_address 
+		<set>
+			<if test="name != null">
+				`name` = #{name},
+			</if>
+			<if test="mobile != null">
+				mobile = #{mobile},
+			</if>
+			<if test="province != null">
+				province = #{province},
+			</if>
+			<if test="city != null">
+				city = #{city},
+			</if>
+			<if test="area != null">
+				area = #{area},
+			</if>
+			<if test="detailAddress != null">
+				detailAddress = #{detailAddress},
+			</if>
+			
+			<if test="lastUpdateTime != null">
+				lastUpdateTime = #{lastUpdateTime},
+			</if>
+			<if test="email != null">
+				email = #{email},
+			</if>
+			<if test="code != null">
+				code = #{code},
+			</if>
+			<if test="isSelected != null">
+				isSelected = #{isSelected},
+			</if>
+		</set>
+			where  id = #{id} and userId = #{userId}
+	</update>
+	
+	<select id="queryById"  resultType="FrontUser_address"  parameterType="integer">
+			select * from frontUser_address  where id = #{0}
+	</select>
+	
+	<select id="queryByParam"  resultType="FrontUser_address"  parameterType="FrontUser_address">
+			select * from frontUser_address  
+				<where>
+					<if test="userId != null">
+						and userId = #{userId}
+					</if>
+					<if test="isSelected != null">
+						and isSelected = #{isSelected}
+					</if>
+				</where>
+	</select>
+	
+	<delete id="deleteByIdAndUserId"  parameterType="integer">
+		delete  from frontUser_address where id=#{id} and userId=#{userId}
+	</delete>
+
+	<!-- 取消其他默认地址 -->
+	<update id="cancelDefaultAddress" parameterType="integer">
+		update frontUser_address set isSelected = 0 where userId = #{userId}
+	</update>
+
+	<!-- 查询用户默认地址记录数 -->
+	<select id="countUserAddress" parameterType="integer" resultType="int">
+		select count(1) from frontUser_address where userId = #{userId} and isSelected =1
+	</select>
+
+	<!-- 默认地址 -->
+	<update id="defaultUserAddress" parameterType="map">
+		update frontUser_address set isSelected = 1 where userId = #{userId} and id = #{id}
+	</update>
+
+	<!-- 根据id查询用户地址 -->
+	<select id="queryUserAddress" parameterType="map" resultType="FrontUser_address">
+		select * from frontUser_address where userId = #{userId} and id = #{id}
+	</select>
+	
+	<select id="countByUserId" parameterType="integer" resultType="int">
+		select count(1) from frontUser_address where userId = #{userId}
+	</select>
+
+	<select id="queryByUserId" parameterType="integer" resultType="FrontUser_address">
+		select * from frontUser_address where userId = #{userId}
+	</select>
+	
+</mapper>

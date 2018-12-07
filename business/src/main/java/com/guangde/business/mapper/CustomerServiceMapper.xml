@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.CustomerServiceMapper">
+	<update id="update" parameterType="CustomerService">
+		UPDATE customer_service
+			<set>
+				<if test="content != null">
+			 	 content = #{content},
+				</if>
+				<if test="replyTime != null">
+			 	 replyTime = #{replyTime},
+				</if>
+				<if test="state != null">
+			 	 state = #{state},
+				</if>
+				<if test="visit != null">
+			 	 visit = #{visit},
+				</if>
+				<if test="contentImageId != null">
+			 	 contentImageId = #{contentImageId},
+				</if>
+				<if test="isHide != null">
+			 	 isHide = #{isHide},
+				</if>
+				<if test="lastUpdateTime != null">
+			 	 lastUpdateTime = #{lastUpdateTime},
+				</if>
+			</set>
+		where id = #{id}
+	</update>
+	
+	<select id="queryByParam" resultType="CustomerService" parameterType="CustomerService">
+		SELECT
+			*
+		FROM
+			customer_service 
+		<where>
+			isHide IN (0)
+			<if test="name != null and name !=''">
+				and name LIKE "%"#{name}"%"
+			</if>
+			<if test="mobile != null and mobile != ''">
+				and mobile LIKE "%"#{mobile}"%"
+			</if>
+			<if test="content != null and content !=''">
+				and content LIKE "%"#{content}"%"
+			</if>
+			<if test="state != null">
+				and state = #{state}
+			</if>
+			<if test="type != null">
+				and type = #{type}
+			</if>
+			<if test="isHide != null">
+				and isHide = #{isHide}
+			</if>
+		</where>
+		ORDER BY id DESC
+	</select>
+	
+	<insert id="save" parameterType="CustomerService" useGeneratedKeys="true" keyProperty="id">
+			INSERT INTO customer_service
+				(
+					userId,
+					state,
+					visit,
+					content,
+					type,
+					isHide,
+					scheme,
+					name,
+					mobile,
+					contentImageId,
+					createTime,
+					lastUpdateTime,
+					spare,
+					replyTime
+				)
+			VALUES
+				(
+					#{userId},
+					#{state},
+					#{visit},
+					#{content},
+					#{type},
+					#{isHide},
+					#{scheme},
+					#{name},
+					#{mobile},
+					#{contentImageId},
+					#{createTime},
+					#{lastUpdateTime},
+					#{spare},
+					#{replyTime}
+				)
+		</insert>
+		
+		<select id="queryById" parameterType="integer" resultType="CustomerService">
+		SELECT
+			cs.*, fu.nickName AS userNickName,
+			bf.url AS headUrl,
+			fu.coverImageId AS headId
+		FROM
+			customer_service cs
+		LEFT JOIN frontUser fu ON fu.id = cs.userId
+		LEFT JOIN b_file bf ON bf.id = fu.coverImageId
+		WHERE
+			cs.id = #{id}
+		</select>
+	
+</mapper>

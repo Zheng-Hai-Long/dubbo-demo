@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.CapitalinoutMapper">
+
+	<insert id="save" parameterType="Capitalinout" useGeneratedKeys="true" keyProperty="id">
+		insert into capitalinout
+		(
+			userId,
+			`type`,
+			inType,
+			money,
+			tranNum, 
+			payNum, 
+			source,
+			payType,
+			payState,
+			balance,
+			createTime,
+			updateTime
+		)
+		values 
+		(
+			#{userId},
+			#{type,},
+			#{inType},
+			#{money},
+			#{tranNum},
+		 	#{payNum}, 
+		 	#{source},
+			#{payType},
+			#{payState},
+			#{balance},
+			#{createTime},
+			#{updateTime}
+		)
+	</insert>
+	
+	<select id="queryByParam"  parameterType="Capitalinout" resultType="Capitalinout">
+		select  t.* from capitalinout t
+		<where>
+ 			<if test="id != null">
+				and t.id = #{id}
+			</if>
+			
+			<if test="payNum != null">
+				 and t.payNum = #{payNum} 
+			</if>
+			
+			<if test="tranNum != null">
+				 and t.tranNum = #{tranNum} 
+			</if>
+			
+			<if test="userId != null">
+				 and t.userId = #{userId} 
+			</if>
+			
+			<if test="type != null">
+				 and t.type= #{type} 
+			</if>
+			
+			<if test="payType != null">
+				 and t.payType= #{payType} 
+			</if>
+			
+			<if test="payState != null">
+				 and t.payState = #{payState}
+			</if>
+			
+			<if test="inType != null">
+				 and t.inType = #{inType}
+			</if>
+			
+			<if test="queryStartDate != null">
+				and t.createTime &gt;=#{queryStartDate}
+			</if>
+			
+			<if test="queryEndDate != null">
+				and t.createTime &lt;=#{queryEndDate}
+			</if>
+		</where>
+		
+	 		<choose>
+				<when test="orderBy !=null and orderBy !=''">
+					 order by ${orderBy}  <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+				</when>
+				<otherwise>
+					order by t.createTime DESC
+				</otherwise>
+			</choose>
+	</select>
+	
+	
+	<select id="queryCapitalinoutList"  parameterType="Capitalinout" resultType="Capitalinout">
+		select * from capitalinout  where  inType = 3 and userId = #{userId}  
+			<if test="queryStartDate != null">
+				and createTime &gt;=#{queryStartDate}
+			</if>
+			
+			<if test="queryEndDate != null">
+				and createTime &lt;=#{queryEndDate}
+			</if>
+		  UNION all
+			select * from capitalinout  where  (inType not in(10,3) or inType is null ) and payState = 302 and userId = #{userId} 
+			<if test="queryStartDate != null">
+				and createTime &gt;=#{queryStartDate}
+			</if>
+			
+			<if test="queryEndDate != null">
+				and createTime &lt;=#{queryEndDate}
+			</if>
+	 		<choose>
+				<when test="orderBy !=null and orderBy !=''">
+					 order by ${orderBy}  <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+				</when>
+				<otherwise>
+					order by createTime DESC,id DESC
+				</otherwise>
+			</choose>
+	</select>
+	
+	
+	<select id="countByParam"  parameterType="Capitalinout" resultType="double">
+		select  sum(t.money) from capitalinout t
+		<where>
+ 			<if test="id != null">
+				and t.id = #{id}
+			</if>
+			
+			<if test="payNum != null">
+				 and t.payNum = #{payNum} 
+			</if>
+			
+			<if test="tranNum != null">
+				 and t.tranNum = #{tranNum} 
+			</if>
+			
+			<if test="userId != null">
+				 and t.userId = #{userId} 
+			</if>
+			
+			<if test="type != null">
+				 and t.type= #{type} 
+			</if>
+			
+			<if test="payState != null">
+				 and t.payState = #{payState}
+			</if>
+			
+			<if test="inType != null">
+				 and t.inType = #{inType}
+			</if>
+			
+			<if test="queryStartDate != null">
+				and t.createTime &gt;=#{queryStartDate}
+			</if>
+			
+			<if test="queryEndDate != null">
+				and t.createTime &lt;=#{queryEndDate}
+			</if>
+		</where>
+		
+	 	
+	</select>
+	<!-- 	根据条件查询某个用善库充值的次数 -->
+	<select id="countChargeNumByParam"  parameterType="Capitalinout" resultType="integer">
+		select count(*) from capitalinout t
+		<where>
+ 			<if test="id != null">
+				and t.id = #{id}
+			</if>
+			
+			<if test="payNum != null">
+				 and t.payNum = #{payNum} 
+			</if>
+			
+			<if test="tranNum != null">
+				 and t.tranNum = #{tranNum} 
+			</if>
+			
+			<if test="userId != null">
+				 and t.userId = #{userId} 
+			</if>
+			
+			<if test="type != null">
+				 and t.type= #{type} 
+			</if>
+			<if test="payType != null">
+				 and t.payType= #{payType} 
+			</if>
+			
+			<if test="payState != null">
+				 and t.payState = #{payState}
+			</if>
+			
+			<if test="inType != null">
+				 and t.inType = #{inType}
+			</if>
+			
+			<if test="queryStartDate != null">
+				and t.createTime &gt;=#{queryStartDate}
+			</if>
+			
+			<if test="queryEndDate != null">
+				and t.createTime &lt;=#{queryEndDate}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 根据param查询资金明细 -->
+	 <select id="queryCapitalinoutByParam" parameterType="Capitalinout" resultType="Capitalinout">
+	 	select * from capitalinout
+	 	<where>
+	 		<if test="tranNum != null">
+				and tranNum = #{tranNum}
+			</if>
+	 	</where>
+	 
+	 </select>
+	<update id="update"  parameterType="Capitalinout" >
+		update capitalinout
+		<set>
+			<if test="tranNum != null">
+				tranNum = #{tranNum},
+			</if>
+			<if test="payState != null">
+				payState = #{payState},
+			</if>
+			<if test="payNum != null">
+				payNum = #{payNum},
+			</if>
+			<if test="source != null">
+				source = #{source},
+			</if>
+			<if test="balance != null">
+				balance = #{balance},
+			</if>
+		</set>
+		<where>
+			id=#{id}
+		</where>
+	</update>
+	
+	<select id="queryById" parameterType="Integer" resultType="Capitalinout">
+		select *  from  capitalinout  where  id = #{0}
+	</select>
+
+</mapper>

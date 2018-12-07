@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.ProjectFeedbackPraiseMapper">
+
+	
+	<!-- 按照param查询点赞信息 -->
+	<select id = "queryByParamPraise"  parameterType="ProjectFeedbackPraise" resultType="ProjectFeedbackPraise">
+		SELECT *  FROM  projectFeedback_praise  
+			<where>
+				<if test="userId != null">
+				 	and userId = #{userId}
+				</if>
+				<if test="feedbackId != null">
+				 	and feedbackId = #{feedbackId}
+				</if>
+				<if test="state != null">
+				 	and state = #{state}
+				</if>
+				<if test="teamId != null">
+				 	and teamId = #{teamId}
+				</if>
+			</where>
+			ORDER BY id DESC
+	</select>
+	
+	<!-- 更新 -->
+	<update id="updateProjectFeedbackPraise" parameterType="ProjectFeedbackPraise">
+		UPDATE   projectFeedback_praise 
+		<set>
+			<if test="userId != null">
+				userId = #{userId},
+			</if>
+			<if test="feedbackId !=null">
+				feedbackId = #{feedbackId},
+			</if>
+			<if test="state !=null">
+			 	state = #{state},
+			</if>
+			<if test="teamId !=null">
+			 	teamId = #{teamId}
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<insert id="saveProjectFeedbackPraise" parameterType="ProjectFeedbackPraise"  useGeneratedKeys="true"  keyProperty="id">
+		
+		insert  into projectFeedback_praise
+		(
+			userId,
+			feedbackId,
+			state,
+			teamId,
+			createTime
+		)
+		values
+		(
+			#{userId},
+			#{feedbackId},
+			#{state},
+			#{teamId},
+			#{createTime}
+		)
+	</insert>
+</mapper>

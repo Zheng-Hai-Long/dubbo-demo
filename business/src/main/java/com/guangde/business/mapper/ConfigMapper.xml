@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.ConfigMapper">
+	<update id="update"   parameterType="com.guangde.business.entry.Config">
+		update cs_config set
+			value = #{value}
+		where
+		    key = #{key}	
+	</update>
+	
+	<select id="queryAll"  resultType="com.guangde.business.entry.Config">
+		select * from cs_config
+	</select>
+	
+	<select id="queryByParam"  resultType="com.guangde.business.entry.Config" parameterType="com.guangde.business.entry.Config">
+		select * from cs_config
+		<where>
+			<if test="configKey != null">
+				configKey = #{configKey}
+			</if>
+		</where>
+	</select>
+	
+	<select id="queryByIdList"  resultType="Config"  parameterType="list">
+		select * from cs_config where id in
+		<foreach collection="list" index="index" item="item" open="(" separator="," close=")">  
+            #{item}   
+   		 </foreach> 
+	</select>
+	
+</mapper>

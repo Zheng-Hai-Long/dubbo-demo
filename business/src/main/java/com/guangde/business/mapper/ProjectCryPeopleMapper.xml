@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.ProjectCryPeopleMapper">
+	<insert id="save"  parameterType="ProjectCryPeople" useGeneratedKeys="true" keyProperty="id">
+		insert into cs_project_cryPeople 
+		(
+		  userId,
+		  realName,
+		  sex,
+		  mobile,
+		  address,
+		  idCardImageId,
+		  helpCause,
+		  remark,
+		  createTime,
+		  state,
+		  updateTime
+		)
+		values
+		(
+		  #{userId},
+		  #{realName},
+		  #{sex},
+		  #{mobile},
+		  #{address},
+		  #{idCardImageId},
+		  #{helpCause},
+		  #{remark},
+		  #{createTime},
+		  #{state},
+		  #{updateTime}
+		)
+	</insert>
+	
+</mapper>

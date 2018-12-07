@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.ThirdUserMapper">
+	<insert id="saveThirdUser" parameterType="ThirdUser"  useGeneratedKeys="true" keyProperty="id">
+		insert into thirdUser
+		(
+			id,
+			type,
+			accountNum,
+			userId,
+			unionid
+		)
+		values
+		(
+			#{id},
+			#{type},
+			#{accountNum},
+			#{userId},
+			#{unionid}
+		)
+	</insert>
+	
+	<update id="updateThirdUserById" parameterType="ThirdUser">
+		update thirdUser 
+		<set>
+			<if test="type != null">
+				and  `type`=#{type}
+			</if>
+			<if test="accountNum != null and accountNum != ''">
+				and  accountNum=#{accountNum}
+			</if>
+			<if test="userId != null">
+				and userId=#{userId}
+			</if>
+		</set>
+		where  id = #{id}
+	</update>
+
+
+	<select id="queryThirdUserByParam"  resultType="ThirdUser"  parameterType="ThirdUser">
+			select * from thirdUser
+			<where>
+				<if test="type != null">
+					and  `type`=#{type}
+				</if>
+				<if test="accountNum != null and accountNum != ''">
+					and  accountNum=#{accountNum}
+				</if>
+				<if test="userId != null">
+					and userId=#{userId}
+				</if>
+			</where>
+	</select>
+	
+</mapper>

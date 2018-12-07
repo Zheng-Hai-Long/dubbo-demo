@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.ServiceLeaveWordMapper">
+	<insert id="save" parameterType="ServiceLeaveWord" useGeneratedKeys="true" keyProperty="id">
+			INSERT INTO service_leaveWord
+				(
+					serviceId,
+					userId,
+					customerId,
+					reply,
+					contentImageId,
+					mobile,
+					name,
+					pid,
+					state,
+					createTime
+				)
+			VALUES
+				(
+					#{serviceId},
+					#{userId},
+					#{customerId},
+					#{reply},
+					#{contentImageId},
+					#{mobile},
+					#{name},
+					#{pid},
+					#{state},
+					#{createTime}
+				)
+		</insert>
+		
+		<update id="update" parameterType="ServiceLeaveWord" >
+			UPDATE service_leaveWord
+				<set>
+					<if test="reply != null">
+				 	 reply = #{reply},
+					</if>
+					<if test="contentImageId != null">
+				 	 contentImageId = #{contentImageId},
+					</if>
+					<if test="state != null">
+				 	 state = #{state},
+					</if>
+				</set>
+			where id = #{id}
+		</update>
+		
+		<select id="queryByParam" parameterType="ServiceLeaveWord" resultType="ServiceLeaveWord">
+			SELECT
+				sl.*, au.realName AS customerName,fu.nickName as userNickName,
+				fu.coverImageId AS headId,bf.url AS headUrl
+			FROM
+				service_leaveWord sl
+			LEFT JOIN action_user au ON sl.customerId = au.id
+			LEFT JOIN frontUser fu ON sl.userId = fu.id 
+			LEFT JOIN b_file bf ON fu.coverImageId = bf.id
+			<where>
+				<if test="id != null">
+					and sl.id =#{id}
+				</if>
+				<if test="userId != null">
+					and sl.userId =#{userId}
+				</if>
+				<if test="name != null and name !=''">
+					and sl.name LIKE "%"#{name}"%"
+				</if>
+				<if test="mobile != null and mobile != ''">
+					and sl.mobile LIKE "%"#{mobile}"%"
+				</if>
+				<if test="reply != null and reply !=''">
+					and sl.reply LIKE "%"#{reply}"%"
+				</if>
+				<if test="state != null">
+					and sl.state = #{state}
+				</if>
+				<if test="serviceId != null">
+					and sl.serviceId = #{serviceId}
+				</if>
+			</where>
+			<choose>
+				<when test="orderBy !=null and orderBy !=''">
+					ORDER BY ${orderBy}  <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+				</when>
+				<otherwise>ORDER BY sl.createTime </otherwise>
+			</choose>
+			
+		</select>
+		
+		<select id="queryById" parameterType="integer" resultType="ServiceLeaveWord">
+			SELECT * FROM service_leaveWord WHERE id=#{id}
+		</select>
+		
+</mapper>

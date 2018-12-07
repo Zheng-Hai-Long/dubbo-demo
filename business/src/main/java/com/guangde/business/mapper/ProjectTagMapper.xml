@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.ProjectTagMapper">
+	
+	<select id="queryById"  resultType="ProjectTag"  parameterType="ProjectTag">
+		select * from cs_project_tag where id=#{id}
+	</select>
+	
+	<select id="queryByParam" resultType="ProjectTag" parameterType="ProjectTag">
+ 		SELECT * from cs_project_tag
+ 		
+ 		<where>
+ 			<if test="name != null">
+				and name = #{name}
+			</if>
+			<if test="isHide != null">
+				and isHide = #{isHide}
+			</if>
+ 		</where>
+		order by id asc
+	</select>
+</mapper>

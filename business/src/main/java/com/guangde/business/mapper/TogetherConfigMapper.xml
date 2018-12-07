@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.guangde.business.dao.TogetherConfigMapper">
+
+	<select id="queryByParamForMoney" resultType="TogetherConfig" parameterType="TogetherConfig">
+ 		select * from together_config t
+ 		<where>
+ 			<if test="userId != null">
+				and t.userId=#{userId}
+			</if>
+ 			<if test="launchName != null and launchName != ''">
+				and t.launchName like "%"#{launchName}"%"
+			</if>
+			<if test="projectId != null">
+				and t.projectId = #{projectId}
+			</if>
+			<if test="teamState != null">
+				and t.teamState = #{teamState}
+			</if>
+			<if test="teamId != null">
+				and t.teamId = #{teamId}
+			</if>
+			<if test="isHide != null">
+				and t.isHide = #{isHide}
+			</if>
+			
+ 		</where>
+		order by t.totalDonateMoney DESC
+	</select>
+
+	<select id="queryByParam" resultType="TogetherConfig" parameterType="TogetherConfig">
+		select t.* from together_config t
+		<where>
+			<if test="userId != null">
+				and t.userId=#{userId}
+			</if>
+			<if test="launchName != null and launchName != ''">
+				and t.launchName like "%"#{launchName}"%"
+			</if>
+			<if test="projectId != null">
+				and t.projectId = #{projectId}
+			</if>
+			<if test="teamState != null">
+				and t.teamState = #{teamState}
+			</if>
+			<if test="teamPlayNum != null">
+				and t.teamPlayNum = t.teamPlayNumLimit
+			</if>
+			<!-- 用来剔除团队项 -->
+			<if test="click ==0">
+				and t.teamState != 100
+			</if>
+			<if test="teamId != null">
+				and t.teamId = #{teamId}
+			</if>
+			<if test="isHide != null">
+				and t.isHide = #{isHide}
+			</if>
+		</where>
+		<choose>
+			<when test="orderBy !=null and orderBy !=''">
+				order by ${orderBy}  <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+			</when>
+			<otherwise>
+				order by t.id DESC
+			</otherwise>
+		</choose>
+
+	</select>
+
+	<select id="selectByParam" resultType="TogetherConfig" parameterType="TogetherConfig">
+		select * from together_config t
+		<where>
+			<if test="id != null">
+				and t.id = #{id}
+			</if>
+			<if test="userId != null">
+				and t.userId=#{userId}
+			</if>
+			<if test="launchName != null and launchName != ''">
+				and t.launchName like "%"#{launchName}"%"
+			</if>
+			<if test="projectId != null">
+				and t.projectId = #{projectId}
+			</if>
+			<if test="teamState != null">
+				and t.teamState = #{teamState}
+			</if>
+			<if test="teamId != null">
+				and t.teamId = #{teamId}
+			</if>
+
+		</where>
+		order by t.id DESC
+	</select>
+
+	<update id="update" parameterType="TogetherConfig">
+		update together_config
+		<set>
+			<if test="type != null and type != ''">
+				`type` = #{type},
+			</if>
+			<if test="launchName != null and launchName != ''">
+				launchName = #{launchName},
+			</if>
+			<if test="totalMoney != null">
+				totalMoney = #{totalMoney},
+			</if>
+			<if test="content != null and content != ''">
+				content = #{content},
+			</if>
+			<if test="coverImageId != null and coverImageId != 0">
+				coverImageId = #{coverImageId},
+			</if>
+			<if test="updateTime != null">
+				updateTime = #{updateTime},
+			</if>
+			<if test="click != null">
+				click= #{click},
+			</if>
+			<if test="donateMoney!=null">
+				donateMoney =#{donateMoney},
+			</if>
+			<if test="donateNum!=null">
+				donateNum= #{donateNum},
+			</if>
+			<if test="shareState!=null and shareState!=0">
+				shareState= #{shareState},
+			</if>
+			<if test="teamPlayNum!=null and teamPlayNum!=0">
+				teamPlayNum= #{teamPlayNum},
+			</if>
+			<if test="praise!=null and praise!=0">
+				praise= #{praise},
+			</if>
+			<if test="teamId != null">
+				teamId = #{teamId},
+			</if>
+			<if test="teamState != null">
+				teamState = #{teamState},
+			</if>
+			<if test="praise != null">
+				praise = #{praise},
+			</if>
+
+			<if test="totalDonateMoney != null">
+				totalDonateMoney = #{totalDonateMoney},
+			</if>
+			<if test="totalDonateNum != null">
+				totalDonateNum =#{totalDonateNum},
+			</if>
+			<if test="isHide != null">
+				isHide =#{isHide}
+			</if>
+		</set>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+
+	<update id="updateImgId" parameterType="TogetherConfig">
+		update together_config set coverImageId = null
+		where id = #{id}
+	</update>
+
+	<delete id="delete" parameterType="integer">
+		delete from together_config where id=#{id}
+	</delete>
+
+	<insert id="save" parameterType="TogetherConfig"  useGeneratedKeys="true"  keyProperty="id">
+
+		insert  into together_config
+		(
+		`type`,
+		projectId,
+		launchName,
+		userId,
+		totalMoney,
+		content,
+		click,
+		donateMoney,
+		donateNum,
+		coverImageId,
+		createTime,
+		teamPlayNum,
+		teamPlayNumLimit,
+		teamState,
+		totalDonateNum,
+		isHide
+		)
+		values
+		(
+		#{type},
+		#{projectId},
+		#{launchName},
+		#{userId},
+		#{totalMoney},
+		#{content},
+		#{click},
+		#{donateMoney},
+		#{donateNum},
+		#{coverImageId},
+		#{createTime},
+		#{teamPlayNum},
+		#{teamPlayNumLimit},
+		#{teamState},
+		#{totalDonateNum},
+		#{isHide}
+		)
+	</insert>
+
+	<insert id="saveTogether" parameterType="TogetherConfig"  useGeneratedKeys="true"  keyProperty="id">
+
+		insert  into together_config
+		(
+		`type`,
+		projectId,
+		launchName,
+		userId,
+		totalMoney,
+		content,
+		click,
+		donateMoney,
+		donateNum,
+		coverImageId,
+		createTime,
+		teamPlayNum,
+		teamPlayNumLimit,
+		teamState,
+		teamId,
+		totalDonateNum,
+		isHide
+		)
+		values
+		(
+		#{type},
+		#{projectId},
+		#{launchName},
+		#{userId},
+		#{totalMoney},
+		#{content},
+		#{click},
+		#{donateMoney},
+		#{donateNum},
+		#{coverImageId},
+		#{createTime},
+		#{teamPlayNum},
+		#{teamPlayNumLimit},
+		#{teamState},
+		#{teamId},
+		#{totalDonateNum},
+		#{isHide}
+		)
+	</insert>
+
+	<select id="queryById" parameterType="int" resultType="TogetherConfig">
+		select * from together_config where id=#{id}
+	</select>
+
+	<!-- 根据项目id查询发起一起捐人数 -->
+	<select id="countTogetherConfig" resultType="int" parameterType="int">
+		SELECT count(*) FROM together_config WHERE projectId = #{projectId}
+	</select>
+
+	<!-- 根据项目id查询参与一起捐人数  -->
+	<select id="countTogetherConfigSum" resultType="int" parameterType="int">
+		SELECT sum(donateNum) FROM together_config WHERE projectId = #{projectId}
+	</select>
+
+	<!-- 根据项目id查询一起捐list -->
+	<select id="queryTogetherConfigByProjectId" resultType="TogetherConfig" parameterType="int">
+		SELECT t.*, u.nickName, u.coverImageId FROM together_config t LEFT JOIN frontUser u ON t.userId = u.id
+		WHERE projectId = #{projectId} ORDER BY donateMoney DESC,donateNum DESC,click DESC,t.createTime DESC
+	</select>
+
+	<!-- 根据项目id查询一起捐list部分数据 -->
+	<select id="oneApiTogetherConfigTotal" resultType="TogetherConfig" parameterType="TogetherConfig">
+		SELECT count(id) as totalFaqiNum,sum(donateMoney) as totalDonateMoney,sum(donateNum) as totalDonateNum FROM together_config
+		WHERE projectId = #{projectId}
+	</select>
+
+	<!-- 根据项目id查询一起捐，捐款，留言 -->
+	<select id="queryDetailByProjectId" resultType="TogetherConfig" parameterType="int">
+		(SELECT t.userId,t.launchName,t.coverImageId,t.donateNum,t.donateMoney,t.content,0 as type,t.createTime FROM together_config t
+		LEFT JOIN frontUser u on t.userId=u.id WHERE t.projectId=#{projectId} AND DATE_FORMAT(t.createTime, "%y-%m-%d") = CURDATE() ORDER BY donateMoney DESC,t.createTime DESC)
+		UNION
+		(SELECT d.userId,u.nickName as launchName,u.coverImageId,0 as donateNum,d.donatAmount as donateMoney,d.leaveWord as content,1 as type,d.donatTime as createTime FROM donate_record d
+		LEFT JOIN frontUser u on d.userId=u.id where d.projectId=#{projectId} AND d.state=302 AND d.extensionPeople IS NULL AND DATE_FORMAT(d.donatTime, "%y-%m-%d") = CURDATE() ORDER BY donateMoney DESC,d.donatTime DESC)
+		UNION
+		(SELECT n.leavewordUserId as userId,u.nickName as launchName,u.coverImageId,0 as donateNum,0 as donateMoney,n.content,n.type,n.createTime FROM newLeaveWord n
+		LEFT JOIN frontUser u on n.leavewordUserId=u.id WHERE n.projectId=#{projectId} AND n.type=2 AND DATE_FORMAT(n.createTime, "%y-%m-%d") = CURDATE() ORDER BY donateMoney DESC,n.createTime DESC) ORDER BY donateMoney DESC,createTime DESC
+	</select>
+
+	<!-- 根据项目id查询一起捐，捐款，同一用户累计 -->
+	<select id="queryTogetherDonateListByProjectId" resultType="TogetherConfig" parameterType="int">
+		(SELECT  d.extensionPeople AS userId,u.nickName as launchName,u.coverImageId,count(d.userId) donateNum,SUM(d.donatAmount) donateMoney,'' as content,0 as type,
+		d.donatTime as createTime FROM donate_record d
+		LEFT JOIN frontUser u on d.extensionPeople=u.id where d.projectId=#{projectId} AND d.state=302 AND d.extensionPeople IS NOT NULL  GROUP BY d.extensionPeople ORDER BY donateMoney DESC,d.donatTime DESC )
+		UNION
+		(SELECT d.userId,u.nickName as launchName,u.coverImageId,count(d.userId) as donateNum,sum(d.donatAmount) as donateMoney,'' as content,1 as type,d.donatTime as createTime FROM donate_record d
+		LEFT JOIN frontUser u on d.userId=u.id where d.projectId=#{projectId} AND d.state=302 AND d.extensionPeople IS NULL GROUP BY d.userId ORDER BY donateMoney DESC,d.donatTime DESC )
+		ORDER BY donateMoney DESC,createTime DESC
+	</select>
+
+	<!-- 统计队伍、队员捐赠金额总额，捐赠次数 -->
+	<select id="countTogetherDonateMoneyAndDonateNumberByProjectId" resultType="TogetherConfig" parameterType="integer">
+		select SUM(totalFaqiNum) totalFaqiNum, SUM(donateMoney) donateMoney, SUM(donateNum) donateNum from
+		(
+		select count(1) totalFaqiNum, SUM(donateMoney) donateMoney, SUM(donateNum) donateNum from together_config
+		where projectId = #{projectId} and teamState=100
+		UNION
+		select 0 as totalFaqiNum, SUM(donateMoney) donateMoney, SUM(donateNum) donateNum from together_config
+		where teamId in (
+		select DISTINCT id from together_config where projectId = #{projectId} and teamState=100
+		)
+		) as t
+	</select>
+
+	<!-- 更新团队加入人数 -->
+	<update id="updateTogetherTeamPeopleNum" parameterType="integer">
+		update together_config set teamPlayNum = teamPlayNum + 1 where id = #{id}
+	</update>
+</mapper>

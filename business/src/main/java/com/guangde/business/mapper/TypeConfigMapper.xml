@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.TypeConfigMapper">
+	<select id="queryTypeConfig"  resultType="TypeConfig"  parameterType="TypeConfig">
+		select * from cs_type_config 
+			<where>
+				<if test="typeName != null">
+					and typeName = #{typeName}
+				</if>
+				<if test="typeName_e != null">
+					and typeName_e = #{typeName_e}
+				</if>
+			</where>
+	</select>
+	
+	<select id="queryByParam"  resultType="TypeConfig"  parameterType="TypeConfig">
+		select * from cs_type_config 
+			<where>
+				typeName !="善缘"
+				<if test="typeName != null">
+					and typeName = #{typeName}
+				</if>
+			</where>
+			order by sort 
+	</select>
+	
+	<select id="queryById"  resultType="TypeConfig"  parameterType="TypeConfig">
+		select * from cs_type_config where id=#{id}
+	</select>
+	
+</mapper>

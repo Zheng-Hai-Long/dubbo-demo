@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.ProductShipmentMapper">
+	<insert id="save"  parameterType="ProductShipment"  useGeneratedKeys="true" keyProperty="id">
+		insert into  product_shipment 
+		(
+			userId,
+			tranNum,
+			productId,
+			productName,
+			addresseeAddress,
+			state,
+			receiverPhone,
+			createTime,
+			updateTime,
+			receiverName
+		)
+		values
+		(
+			#{userId},
+			#{tranNum},
+			#{productId},
+			#{productName},
+			#{addresseeAddress},
+			#{state},
+			#{receiverPhone},
+			#{createTime},
+			#{updateTime},
+			#{receiverName}
+		)
+	</insert>
+	
+	<select id = "queryByParam"  parameterType="map" resultType="ProductShipment">
+		select p.*,f.userName  from  product_shipment p LEFT JOIN frontUser f ON p.userId = f.id   
+			<where>
+				<if test="userId != null">
+				 	and p.userId = #{userId}
+				</if>
+				<if test="tranNum != null and tranNum !=''">
+				 	and p.tranNum = #{tranNum}
+				</if>
+				<if test="productName != null and productName !=''">
+				 	and p.productName like "$"#{productName}"$"
+				</if>
+				<if test="state != null">
+				 	and p.state = #{state}
+				</if>
+				<if test="receiverName != null and receiverName !=''">
+				 	and p.receiverName = #{receiverName}
+				</if>
+				<if test="userName != null and userName !=''">
+				 	and f.userName like "%"#{userName}"%"
+				</if>
+			</where>
+			<choose>
+				<when test="orderBy !=null and orderBy !=''">
+					 order by  ${orderBy}
+					 <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+				</when>
+				<otherwise>
+					 order by id DESC
+				</otherwise>
+			</choose>
+	</select>
+	
+	<!-- 修改信息 -->
+	<update id="update" parameterType="ProductShipment">
+		update product_shipment 
+		<set>
+			<if test="courierName != null and courierName !='' ">
+			 	courierName = #{courierName},
+			</if>
+			<if test="courierNum != null and courierNum !=''">
+				courierNum = #{courierNum},
+			</if>
+			<if test="state != null">
+				state = #{state},
+			</if>
+			<if test="shipmentTime != null">
+				shipmentTime = #{shipmentTime},
+			</if>
+			<if test="updateTime != null">
+				updateTime = #{updateTime},
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<!-- 通过id查询 -->
+	<select id="queryById" parameterType="int" resultType="ProductShipment">
+		select * from product_shipment where id=#{id}
+	</select>
+	
+</mapper>

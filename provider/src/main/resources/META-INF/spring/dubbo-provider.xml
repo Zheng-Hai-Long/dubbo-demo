@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ - Copyright 1999-2011 Alibaba Group.
+ -  
+ - Licensed under the Apache License, Version 2.0 (the "License");
+ - you may not use this file except in compliance with the License.
+ - You may obtain a copy of the License at
+ -  
+ -      http://www.apache.org/licenses/LICENSE-2.0
+ -  
+ - Unless required by applicable law or agreed to in writing, software
+ - distributed under the License is distributed on an "AS IS" BASIS,
+ - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ - See the License for the specific language governing permissions and
+ - limitations under the License.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+    <!-- 不能使用通配符*，xml文件名必须写全  -->
+    <import resource="classpath:spring/context-business.xml" />
+    
+    <dubbo:application name="service" owner="programmer" organization="dubbox"/>
+
+    <!-- <dubbo:registry address="multicast://224.5.6.7:12340?unicast=false"/> -->
+    <dubbo:registry address="${registry.address}" group="dev"/>
+
+    <dubbo:provider timeout="120000" />
+
+    <dubbo:annotation package="com.guangde.user.facade.impl" />
+    <dubbo:annotation package="com.guangde.homepage.facade.impl"/>
+    <dubbo:annotation package="com.guangde.commons.facade.impl"/>
+
+    <dubbo:protocol name="dubbo" port="8806" />
+    <dubbo:protocol name="hessian" port="8093" contextpath="" server="tomcat"/>
+    
+    <dubbo:service interface="com.guangde.api.homepage.IProjectVolunteerFacade"   ref="projectVolunteerFacade"   protocol="dubbo"/>
+  	<dubbo:service interface="com.guangde.api.homepage.ICustomerServiceFacade"   ref="customerServiceFacade"   protocol="dubbo"/>
+    <dubbo:service interface="com.guangde.api.user.IUserFacade" ref="userFacade"  protocol="dubbo"/>
+    <dubbo:service interface="com.guangde.api.user.IUserRelationInfoFacade" ref="userRelationInfoFacade"  protocol="dubbo"/>
+    <dubbo:service interface="com.guangde.api.homepage.IHomePageFacade"   ref="homePageFacade"   protocol="dubbo"/>
+    <dubbo:service interface="com.guangde.api.homepage.IProjectFacade"   ref="projectFacade"   protocol="dubbo"/>
+    <dubbo:service interface="com.guangde.api.user.ICompanyFacade"   ref="companyFacade"   protocol="dubbo"/>
+    <dubbo:service interface="com.guangde.api.commons.IFileFacade"  ref="fileFacade"  protocol="hessian"/>
+    <dubbo:service interface="com.guangde.api.user.ISystemNotifyFacade" ref="SystemNotifyFacade" protocol="dubbo"/>
+    <dubbo:service interface="com.guangde.api.user.IDonateRecordFacade" ref="DonateRecordFacade" protocol="dubbo"/>
+    <dubbo:service interface="com.guangde.api.commons.ICommonFacade" ref="CommonFacade" protocol="dubbo"/>
+    <dubbo:service interface="com.guangde.api.homepage.INewsFacade" ref="newsFacade" protocol="dubbo"/>
+    <dubbo:service interface="com.guangde.api.homepage.IProductFacade" ref="productFacade" protocol="dubbo"/>
+</beans>

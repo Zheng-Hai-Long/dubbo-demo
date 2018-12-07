@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.ActivityConfigMapper">
+	<select id="queryById"  resultType="ActivityConfig"  parameterType="integer">
+		select * from activity_config where id=#{id}
+	</select>
+	
+	<select id="queryByParam"  resultType="ActivityConfig"  parameterType="ActivityConfig">
+		select ac.*,b.url logoUrl, b.middleUrl logoMiddleUrl,b.litterUrl logoLittleUrl from activity_config ac left join b_file b on ac.logoId = b.id
+		<where>
+			ac.isHide = 0
+			<if test="activityName != null and activityName != ''">
+				and ac.activityName like "%"#{activityName}"%"
+			</if>
+		</where>
+   		order by ac.updateTime desc
+	</select>
+
+	<update id="update" parameterType="ActivityConfig" >
+		update activity_config
+		<set>
+			<if test="isForm != null">
+				isForm = #{isForm},
+			</if>
+			<if test="formId != null">
+				formId = #{formId},
+			</if>
+			<if test="launchName != null and launchName != ''">
+				launchName = #{launchName},
+			</if>
+			<if test="activityName != null and activityName != ''">
+				activityName = #{activityName},
+			</if>
+			<if test="logoId != null">
+				logoId = #{logoId},
+			</if>
+			<if test="address != null and address != ''">
+				address = #{address},
+			</if>
+			<if test="limitNum != null">
+				limitNum = #{limitNum},
+			</if>
+			<if test="enterNum != null">
+				enterNum = #{enterNum},
+			</if>
+			<if test="content != null and content != ''">
+				content = #{content},
+			</if>
+			<if test="startTime != null">
+				startTime = #{startTime},
+			</if>
+			<if test="endTime != null">
+				endTime = #{endTime},
+			</if>
+			<if test="limitNum != null">
+				limitNum = #{limitNum},
+			</if>
+			<if test="updateTime != null">
+				updateTime = #{updateTime}
+			</if>
+
+		</set>
+		where id = #{id}
+	</update>
+
+	<insert id="save" parameterType="ActivityConfig"  useGeneratedKeys="true" keyProperty="id">
+		insert into activity_config
+		(
+			isForm,
+			formId,
+			launchName,
+			activityName,
+			logoId,
+			address,
+			limitNum,
+			enterNum,
+			content,
+			startTime,
+			endTime,
+			createTime,
+			updateTime
+		)
+		values
+		(
+			#{isForm},
+			#{formId},
+			#{launchName},
+			#{activityName},
+			#{logoId},
+			#{address},
+			#{limitNum},
+			#{enterNum},
+			#{content},
+			#{startTime},
+			#{endTime},
+			#{createTime},
+			#{updateTime}
+		)
+	</insert>
+
+	<select id="queryCommonFormUserPageByParam" parameterType="integer" resultType="ActivityConfig">
+		select ac.* from activity_config ac left join cs_common_form_user cs on ac.formId = cs.formId where cs.userId = #{userId} group by ac.id
+	</select>
+</mapper>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.UserCardMapper">
+	<insert id="save"  parameterType="UserCard"  useGeneratedKeys="true" keyProperty="id">
+		insert into  userCard 
+		(
+			userId,
+			bankName,
+			province,
+			area,
+			city,
+			card,
+			useState,
+			bankType,
+			isSelected,
+			accountType,
+			accountName,
+			projectId
+		)
+		values
+		(
+			#{userId},
+			#{bankName},
+			#{province},
+			#{area},
+			#{city},
+			#{card},
+			#{useState},
+			#{bankType},
+			#{isSelected},
+			#{accountType},
+			#{accountName},
+			#{projectId}
+		)
+	</insert>
+	
+	<select id = "queryByParam"  parameterType="UserCard" resultType="UserCard">
+		select *  from  userCard  
+			<where>
+				
+				<if test="useState != null">
+				 	and useState = #{useState}
+				</if>
+				
+				<if test="userId != null">
+				 	and userId = #{userId}
+				</if>
+				
+				<if test="card != null">
+				 	and card = #{card}
+				</if>
+				
+				<if test="bankName != null">
+				 	and bankName = #{bankName}
+				</if>
+				
+				<if test="province != null">
+					and province = #{province}
+				</if>
+				<if test="city != null">
+					and city = #{city}
+				</if>
+				<if test="area != null">
+					and area = #{area}
+				</if>
+				<if test="id != null">
+					and id = #{id}
+				</if>
+				<if test="projectId != null">
+					and projectId = #{projectId}
+				</if>
+			</where>
+	</select>
+	
+	<select id = "queryUserCardByCard"   resultType="UserCard">
+		select *  from  userCard  where  card = #{0} and userId = #{1} and useState = 100
+	</select>
+	
+	<!-- 根据项目id和用户id查询银行卡 -->
+	<select id = "queryNewUserCardByCard"   resultType="UserCard">
+		select *  from  userCard  where  projectId = #{0} and userId = #{1} and useState = 100
+	</select>
+	
+	<update id="update" parameterType="UserCard">
+		update   userCard 
+		<set>
+			<if test="useState != null">
+				useState = #{useState},
+			</if>
+			<if test="bankName !=null">
+				 	bankName = #{bankName},
+				</if>
+				<if test="card !=null">
+				 	card = #{card},
+				</if>
+				<if test="accountName !=null">
+				 	accountName = #{accountName},
+				</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<update id="updateUserCard" parameterType="UserCard" >
+		update userCard 
+			<set>
+				<if test="isSelected != null">
+					isSelected = #{isSelected},
+				</if>
+				<if test="bankName !=null">
+				 	bankName = #{bankName},
+				</if>
+				<if test="card !=null">
+				 	card = #{card},
+				</if>
+				<if test="accountName !=null">
+				 	accountName = #{accountName},
+				</if>
+			</set>
+			<where>
+			
+				<if test="userId != null">
+					and userId = #{userId}
+				</if>
+				
+				<if test="id != null">
+					and id = #{id}
+				</if>
+				
+			</where>
+	</update>
+	
+	
+</mapper>

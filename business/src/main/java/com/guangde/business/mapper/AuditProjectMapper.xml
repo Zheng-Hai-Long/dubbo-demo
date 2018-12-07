@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.AuditProjectMapper">	
+	
+	<insert id="save" parameterType="AuditProject"  useGeneratedKeys="true" keyProperty="id">
+		insert into audit_project
+		(
+			userId,
+			projectId,
+			information,
+			relationship,
+			realName,
+			idCard,
+			MobileNum
+		)
+		values
+		(
+			#{userId},
+			#{projectId},
+			#{information},
+			#{relationship},
+			#{realName},
+			#{idCard},
+			#{MobileNum}
+		)
+	</insert>
+	<update id="update"  parameterType="AuditProject">
+		update audit_project 
+		<set>
+			<if test="information != null">
+				 information=#{information},
+			</if>
+			<if test="relationship != null">
+				relationship=#{relationship}
+			</if>
+		</set> 
+	    where id=#{id}	   
+	</update>
+	
+<!-- 	查询为某一个项目证实的人数的总数 -->
+     <select id="selectProjectCount"  parameterType="AuditProject"  resultType="Integer">
+          select count(*) from audit_project a
+          <where>
+				<if test="userId != null" >
+					and  a.userId=#{userId}
+				</if>
+				<if test="projectId != null">
+					and  a.projectId=#{projectId}
+				</if>
+				<if test="information != null and information!=''">
+					and a.information=#{information}
+				</if>
+				<if test="realName != null and realName!=''">
+					and a.realName=#{realName}
+				</if>
+				<if test="idCard != null and  idCard!=''">
+					and a.idCard=#{idCard}
+				</if>
+				<if test="MobileNum != null and MobileNum!=''">
+					and a.MobileNum=#{MobileNum}
+				</if>
+			</where>      
+     </select>
+<!--    查询证实人列表 -->
+	 <select id="selectAuditProjectList" parameterType="AuditProject" resultType="AuditProject">
+			select a.id,a.userId,a.projectId,a.information,a.relationship,a.idCard,a.MobileNum,f.nickName as realName,f.coverImageId,f.realState from audit_project a right join frontUser f on a.userId=f.id
+			<where>
+				<if test="userId != null" >
+					and  a.userId=#{userId}
+				</if>
+				<if test="projectId != null">
+					and  a.projectId=#{projectId}
+				</if>
+				<if test="information != null and information !=''">
+					and a.information=#{information}
+				</if>
+				<if test="realName != null and realName !=''">
+					and a.realName=#{realName},
+				</if>
+				<if test="idCard != null and  idCard !=''">
+					and a.idCard=#{idCard},
+				</if>
+				<if test="MobileNum != null and MobileNum !=''">
+					and a.MobileNum=#{MobileNum}
+				</if>
+			</where>
+			order by a.id desc
+	 </select>
+     <select id="selectByParam"  resultType="AuditProject"  parameterType="AuditProject">
+			select a.* from audit_project a 
+			<where>
+			    <if test="id != null" >
+					and  a.id=#{id}
+				</if>
+				<if test="userId != null" >
+					and  a.userId=#{userId}
+				</if>
+				<if test="projectId != null">
+					and  a.projectId=#{projectId}
+				</if>
+				<if test="information != null and information !=''">
+					and a.information=#{information}
+				</if>
+				<if test="realName != null and realName !=''">
+					and a.realName=#{realName}
+				</if>
+				<if test="idCard != null and  idCard !=''">
+					and a.idCard=#{idCard}
+				</if>
+				<if test="MobileNum != null and MobileNum !=''">
+					and a.MobileNum=#{MobileNum}
+				</if>
+			</where>
+	</select>
+</mapper>

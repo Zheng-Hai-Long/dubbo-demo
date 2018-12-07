@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.ProjectUserInfoMapper">
+	<insert id="save"  parameterType="ProjectUserInfo" useGeneratedKeys="true" keyProperty="id">
+		insert into cs_project_userInfo 
+		(
+			projectId,
+			realName,
+			sex,
+			age,
+			familyAddress,
+			workUnit,
+			linkMan,
+			linkMobile,
+			relation,
+			persition,
+			personType,
+			vocation,
+			qqOrWx,
+			createTime,
+			indetity,
+			helpType,
+			auditState,
+			contentImageId
+		)
+		values
+		(
+			#{projectId},
+			#{realName},
+			#{sex},
+			#{age},
+			#{familyAddress},
+			#{workUnit},
+			#{linkMan},
+			#{linkMobile},
+			#{relation},
+			#{persition},
+			#{personType},
+			#{vocation},
+			#{qqOrWx},
+			#{createTime},
+			#{indetity},
+			#{helpType},
+			#{auditState},
+			#{contentImageId}
+		)
+	</insert>
+	
+	<update id="update" parameterType="ProjectUserInfo">
+		update cs_project_userInfo 
+		<set>
+			<if test="realName != null">
+				realName = #{realName},
+			</if>
+			<if test="sex != null">
+				sex = #{sex},
+			</if>
+			<if test="age != null">
+				age = #{age},
+			</if>
+			<if test="familyAddress != null">
+				familyAddress = #{familyAddress},
+			</if>
+			<if test="workUnit != null">
+				workUnit = #{workUnit},
+			</if>
+			<if test="linkMan != null">
+				linkMan = #{linkMan},
+			</if>
+			<if test="linkMobile != null">
+				linkMobile = #{linkMobile},
+			</if>
+			<if test="relation != null">
+				relation = #{relation},
+			</if>
+			<if test="persition != null">
+				persition = #{persition},
+			</if>
+			<if test="personType != null">
+				personType = #{personType},
+			</if>
+			<if test="vocation != null">
+				vocation = #{vocation},
+			</if>
+			<if test="qqOrWx != null">
+				qqOrWx = #{qqOrWx},
+			</if>
+			<if test="indetity != null">
+				indetity = #{indetity},
+			</if>
+			<if test="helpType != null">
+				helpType =#{helpType},
+			</if>
+			<if test="contentImageId != null">
+				contentImageId=#{contentImageId}
+			</if>
+		</set>
+		where projectId = #{projectId} and personType = #{personType}
+	</update>
+	
+	<select id="queryProjectUserInfo"  parameterType="ProjectUserInfo" resultType="ProjectUserInfo">
+		
+		select * from  cs_project_userInfo  
+			<where>
+				<if test="projectId != null">
+					and projectId = #{projectId}
+				</if>
+				<if test="personType != null">
+					and personType = #{personType}
+				</if>
+				<if test="id != null">
+					and id = #{id}
+				</if>
+				<if test="realName != null">
+					and realName = #{realName}
+				</if>
+				<if test="helpType != null">
+					and helpType= #{helpType}
+				</if>
+			</where>
+		
+	</select>
+	
+	<select id="queryByParam"  parameterType="ProjectUserInfo" resultType="ProjectUserInfo">
+		SELECT
+			uf.*, f.url as headImageUrl,
+			f.litterUrl as litterImageUrl
+		FROM
+			cs_project_userInfo uf
+		LEFT JOIN b_file f ON uf.headImageId = f.id
+			<where>
+				<if test="projectId != null">
+					and uf.projectId = #{projectId}
+				</if>
+				<if test="personType != null">
+					and uf.personType = #{personType}
+				</if>
+				<if test="id != null">
+					and uf.id = #{id}
+				</if>
+				<if test="realName != null">
+					and uf.realName = #{realName}
+				</if>
+				<if test="helpType != null">
+					and helpType= #{helpType}
+				</if>
+			</where>
+		
+	</select>
+	
+</mapper>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.WeixinModelMapper">
+
+	<insert id="save" parameterType="WeiXinModel" useGeneratedKeys="true" keyProperty="id">
+		insert into weixin_model
+  		(
+  			model,
+  			state,
+  			openId,
+  			userId,
+  			projectId,
+  			reportId,
+  			value1,
+  			value2,
+  			value3,
+  			value4,
+  			value5,
+  			value6,
+  			createTime,
+  			feedbackId
+  		)
+  		values
+  		(
+            #{model},
+            #{state},
+            #{openId},
+            #{userId},
+            #{projectId},
+            #{reportId},
+            #{value1},
+  			#{value2},
+  			#{value3},
+  			#{value4},
+  			#{value5},
+  			#{value6},
+  			#{createTime},
+  			#{feedbackId}
+  		) 
+	</insert>
+</mapper>

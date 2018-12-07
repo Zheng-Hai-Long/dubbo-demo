@@ -1,0 +1,980 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.ProjectMapper">
+	<select id="queryById"  resultType="Project"  parameterType="integer">
+		SELECT
+			p.*, f.url AS coverImageUrl,
+			f.middleUrl AS coverImageUrlMiddle,
+			f.litterUrl AS coverImageUrlLitter,
+			f.description AS coverImageDecription
+		FROM
+			cs_project p
+		LEFT JOIN b_file f ON p.coverimageid = f.id
+		WHERE
+			p.id = #{id}
+	</select>
+	
+	<select id="queryProjectByInterest"  resultType="Project"  parameterType="Project">
+		select * from cs_project 
+			<where>
+				state = 240 and field !='garden'  and isHide = 0 
+				<if test="location != null">
+					and location like "%"#{location}"%"
+				</if>
+				
+				<if test="field != null">
+					and field = #{field}
+				</if>
+				<if test="fieldList != null">
+					and  field in 
+					<foreach collection="fieldList" index="index" item="item" open="(" separator="," close=")">  
+			            #{item}   
+			   		 </foreach> 
+				</if>
+			</where>
+			order by state,registrTime DESC
+			limit 0,3
+	</select>
+	
+	<select id="queryProjectByUser"  resultType="Project"  parameterType="integer">
+		select * from cs_project where  userId = #{userId} limit 1,1
+	</select>
+	
+	<select id="queryProjectListByUser"  resultType="Project"  parameterType="integer">
+		select * from cs_project  p where p.id in(select distinct(d.projectid) from  donate_record d where d.userId = #{0} and d.state = 302)  
+	</select>
+	
+	<delete id="delete"  parameterType="integer">
+		delete  from cs_project where id=#{id}  and (state = 200 or state = 230)
+	</delete>
+ 
+	<select id="queryByLock"  resultType="Project"  parameterType="integer">
+		select * from cs_project where id=#{id} for update
+	</select>
+	
+	<select id="queryProectByHits"  resultType="Project">
+		select * from cs_project where id not in (#{0}) and field !='garden' and state=240 and isHide = 0  order by clickRate desc limit 0,#{1}
+	</select>
+	
+	<select id="queryHomeDonation"  resultType="Project">
+		select * from cs_project where field = #{0} and state=240 and isHide = 0 order by clickRate desc limit 0,#{1}
+	</select>
+	
+	<select id="queryProjectList" resultType="Project" parameterType="Project">
+		select p.*, f.url as coverImageUrl,f.litterUrl as coverImageUrlLitter from cs_project p  left join b_file f on p.coverImageId = f.id
+		<where>
+			p.isHide = 0
+			<if test="keyword != null and keyword != ''">
+				and p.title like "%"#{keyword}"%"
+			</if>
+			<if test="field != null and field != ''">
+				and p.field = #{field}
+			</if>
+
+			<if test="state != null">
+				and p.state = #{state}
+			</if>
+
+			<if test="states != null">
+				and  p.state in
+				<foreach collection="states" index="index" item="item" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+			</if>
+		</where>
+		<choose>
+			<when test="orderBy !=null and orderBy !=''">
+				<!--  order by (p.donatAmount/p.cryMoney) DESC,${orderBy}  <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if> -->
+				order by ${orderBy}  <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+			</when>
+			<otherwise>
+				order by p.state,p.registrTime DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+<!-- 	根据最新捐款顺序查询项目 -->
+	<select id="queryByParam"  resultType="Project"  parameterType="Project">
+		<if test="title !=null and title != ''">
+			select * from (select 
+			p.*, f.url as coverImageUrl,f.litterUrl as coverImageUrlLitter ,f.description ,cs.realName
+		from cs_project p left join b_file f on p.coverimageid = f.id LEFT JOIN cs_project_userInfo cs on p.id=cs.projectId
+		</if>
+		<if test="title ==null or title == ''">
+			select * from (select 
+			p.*, f.url as coverImageUrl,f.litterUrl as coverImageUrlLitter ,f.description 
+		from cs_project p left join b_file f on p.coverimageid = f.id
+		</if>
+		<where>
+			<if test="taglist != null">
+				<foreach collection="taglist" index="index" item="item">  
+		           OR  p.tag LIKE  '%${item}%'   
+		   		</foreach> 
+			</if>
+			<if test="isHide != null">
+				and p.isHide = #{isHide}
+			</if>
+			
+			<if test="id != null">
+				and p.id = #{id}
+			</if>
+			
+ 			<if test="field != null">
+				and p.field = #{field}
+			</if>
+			
+			<if test="field == null">
+				and p.field != 'good'
+			</if>
+			
+			<if test="state != null">
+				and p.state = #{state}
+			</if>
+
+			
+			<if test="states != null">
+				and  p.state in 
+				<foreach collection="states" index="index" item="item" open="(" separator="," close=")">  
+		            #{item}   
+		   		 </foreach> 
+			</if>
+
+			<if test="location != null">
+				and p.id in 
+				(SELECT projectId from cs_project_area where province = #{location})
+			</if>
+			<if test="pList != null">
+				and  p.id in 
+				<foreach collection="pList" index="index" item="item" open="(" separator="," close=")">  
+		            #{item}   
+		   		 </foreach> 
+			</if>
+			<!-- 我的求助搜索 -->
+			<if test="title !=null and title != ''">
+				and cs.personType=0 and (p.title like '%${title}%' or cs.realName like '%${title}%' )
+			</if>
+ 		</where>
+ 		<choose>
+
+			<when test="orderBy !=null and orderBy !=''">
+				<!--  order by (p.donatAmount/p.cryMoney) DESC,${orderBy}  <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if> -->
+				 order by ${orderBy}  <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+			</when>
+			<otherwise>
+			 		order by p.state,p.registrTime DESC
+			</otherwise>
+		</choose>
+		)t1
+		<if test="claimUserId != null and (title ==null or title == '')">
+			UNION
+				SELECT * FROM(SELECT p.*, f.url as coverImageUrl,f.litterUrl as coverImageUrlLitter ,f.description 
+				from cs_project p left join b_file f on p.coverimageid = f.id
+				where p.userId != #{userId} and claimUserId=#{claimUserId}
+				<if test="state != null">
+					and p.state = #{state}
+				</if>
+				<if test="states != null">
+					and  p.state in 
+					<foreach collection="states" index="index" item="item" open="(" separator="," close=")">  
+			            #{item}   
+			   		 </foreach> 
+				</if>
+				order by p.state,p.registrTime DESC)t2
+		</if>
+		<if test="claimUserId != null and title !=null and title != ''">
+			UNION
+			select * from (select 
+			p.*, f.url as coverImageUrl,f.litterUrl as coverImageUrlLitter ,f.description ,cs.realName
+		from cs_project p left join b_file f on p.coverimageid = f.id LEFT JOIN cs_project_userInfo cs on p.id=cs.projectId
+		where p.userId != #{userId} and claimUserId=#{claimUserId}
+				<if test="state != null">
+					and p.state = #{state}
+				</if>
+				<if test="states != null">
+					and  p.state in 
+					<foreach collection="states" index="index" item="item" open="(" separator="," close=")">  
+			            #{item}   
+			   		 </foreach> 
+				</if>
+				<if test="title !=null and title != ''">
+					and cs.personType=0 and (p.title like '%${title}%' or cs.realName like '%${title}%' )
+				</if>
+				order by p.state,p.registrTime DESC)t2
+		</if>
+		<!-- add 项目管理员的项目 -->
+		<if test="userId != null and title !=null and title != ''">
+			UNION
+				select * from (SELECT p.*, f.url as coverImageUrl,f.litterUrl as coverImageUrlLitter ,f.description ,cs.realName 
+			FROM loveGroupMent l LEFT JOIN cs_project p on l.projectId=p.id  LEFT JOIN b_file f on p.coverimageid = f.id LEFT JOIN cs_project_userInfo cs on p.id=cs.projectId
+			where l.userType=3 and role=0 and l.userId=#{userId} and cs.personType=0 
+			<if test="state != null">
+				and p.state = #{state}
+			</if>
+			<if test="states != null">
+				and  p.state in 
+				<foreach collection="states" index="index" item="item" open="(" separator="," close=")">  
+		            #{item}   
+		   		 </foreach> 
+			</if>
+			<if test="title !=null and title != ''">
+				and (p.title like '%${title}%' or cs.realName like '%${title}%' )
+			</if>
+			order by p.state,p.registrTime DESC)t3
+		</if>
+		<if test="userId != null and (title ==null or title == '')">
+			UNION
+				select * from (SELECT p.*, f.url as coverImageUrl,f.litterUrl as coverImageUrlLitter ,f.description
+			FROM loveGroupMent l LEFT JOIN cs_project p on l.projectId=p.id   left join b_file f on p.coverimageid = f.id
+			where l.userType=3 and role=0 and l.userId=#{userId}
+			<if test="state != null">
+				and p.state = #{state}
+			</if>
+			<if test="states != null">
+				and  p.state in 
+				<foreach collection="states" index="index" item="item" open="(" separator="," close=")">  
+		            #{item}   
+		   		 </foreach> 
+			</if>
+			order by p.state,p.registrTime DESC)t3
+		</if>
+	</select>
+	
+<!-- 	根据项目发布的时间来查询项目 -->
+    <select id="queryUCenterProjectlist"  resultType="Project"  parameterType="Project">
+		SELECT * FROM (select 
+			p.*, f.url as coverImageUrl,f.litterUrl as coverImageUrlLitter ,f.description
+		from cs_project p left join b_file f on p.coverimageid = f.id
+		<where>
+			<if test="taglist != null">
+				<foreach collection="taglist" index="index" item="item">  
+		           OR  p.tag LIKE  "%"${item}"%"
+		   		</foreach> 
+			</if>
+			<if test="isHide != null">
+				and p.isHide = #{isHide}
+			</if>
+			
+			<if test="id != null">
+				and p.id = #{id}
+			</if>
+			
+ 			<if test="field != null">
+				and p.field = #{field}
+			</if>
+			
+			<if test="field == null">
+				and p.field != 'good'
+			</if>
+			
+			<if test="userId != null">
+				and p.userId = #{userId}
+			</if>
+			
+			<if test="head != null">
+				and p.head = #{head}
+			</if>
+			
+			<if test="state != null">
+				and p.state = #{state}
+			</if>
+			
+			<if test="oneLevel != null">
+				and p.oneLevel = #{oneLevel}
+			</if>
+			
+			<if test="twoLevel != null">
+				and p.twoLevel = #{twoLevel}
+			</if>
+			
+			<if test="states != null">
+				and  p.state in 
+				<foreach collection="states" index="index" item="item" open="(" separator="," close=")">  
+		            #{item}   
+		   		 </foreach> 
+			</if>
+			<if test="isRecommend != null and isRecommend == 0">
+				and p.isRecommend = #{isRecommend}
+			</if>
+			<if test="isRecommend != null and isRecommend != 0">
+				and p.isRecommend != 0
+			</if>
+			<if test="location != null">
+				and p.id in 
+				(SELECT projectId from cs_project_area where province = #{location})
+			</if>
+			<if test="pList != null">
+				and  p.id in 
+				<foreach collection="pList" index="index" item="item" open="(" separator="," close=")">  
+		            #{item}   
+		   		 </foreach> 
+			</if>
+ 		</where>	
+			 order by p.id DESC)t1
+		<if test="claimUserId != null and userId != null">
+			UNION
+			SELECT * FROM(SELECT p.*, f.url as coverImageUrl,f.litterUrl as coverImageUrlLitter ,f.description  from cs_project p left join b_file f on p.coverimageid = f.id
+				where p.userId != #{claimUserId} and p.claimUserId=#{claimUserId}
+				<if test="isHide != null">
+					and p.isHide = #{isHide}
+				</if>
+				<if test="state != null">
+					and p.state = #{state}
+				</if>
+				<if test="taglist != null">
+					<foreach collection="taglist" index="index" item="item">  
+			           OR  p.tag LIKE  '%${item}%'   
+			   		</foreach> 
+				</if>
+				order by p.id DESC)t2
+			UNION
+			SELECT * FROM (SELECT p.*, f.url as coverImageUrl,f.litterUrl as coverImageUrlLitter ,f.description FROM loveGroupMent l LEFT JOIN cs_project p on l.projectId=p.id   left join b_file f on p.coverimageid = f.id
+			where l.userType=3 and role=0 and l.userId=#{userId}
+				<if test="isHide != null">
+					and p.isHide = #{isHide}
+				</if>
+				<if test="state != null">
+					and p.state = #{state}
+				</if>
+			order by p.id DESC)t3
+		</if>
+	</select>
+<!-- 	end -->
+	<select id="queryByParamNew"  resultType="Project"  parameterType="Project">
+		select 
+			p.*, f.url as coverImageUrl,f.litterUrl as coverImageUrlLitter
+			,pf.realName,pf.workUnit,pf.sex,pf.familyAddress,pf.age,fu.userName as uname,fu.userType as userType,fu.nickName as nickName
+		from cs_project p left join b_file f on p.coverimageid = f.id
+		LEFT JOIN (SELECT realName,sex,familyAddress,age,projectId,workUnit from cs_project_userInfo 
+			<where>
+				<if test="personType == null">
+					and personType = 2 
+				</if>
+				<if test="personType != null">
+					and personType = #{personType} 
+				</if>
+			</where>
+		) as pf
+		on p.id = pf.projectId LEFT JOIN frontUser fu  on p.userId = fu.id 
+		<where>
+			<if test="taglist != null and taglist !=''">
+				<foreach collection="taglist" index="index" item="item">
+						OR  p.tag LIKE  '%${item}%'
+		              
+		   		</foreach> 
+			</if>
+			<if test="tag != null">
+				and p.tag LIKE '%${tag}%'
+			</if>
+			
+			<if test="keyword != null">
+				and (p.title LIKE '%${keyword}%' or  pf.realName like '%${keyword}%' or  pf.workUnit like '%${keyword}%')
+			</if>
+		
+			<if test="isHide != null">
+				and p.isHide = #{isHide}
+			</if>
+			
+			<if test="id != null">
+				and p.id = #{id}
+			</if>
+			
+ 			<if test="field != null and field != ''">
+				and p.field = #{field}
+			</if>
+			
+			<if test="field == null or field == ''">
+				and p.field !='garden' and p.field != 'good'
+			</if>
+			
+			<if test="userId != null">
+				and p.userId = #{userId}
+			</if>
+			
+			<if test="head != null">
+				and p.head = #{head}
+			</if>
+			
+			<if test="state != null">
+				and p.state = #{state}
+			</if>
+			<if test="states != null">
+				and  p.state in 
+				<foreach collection="states" index="index" item="item" open="(" separator="," close=")">  
+		            #{item}   
+		   		 </foreach> 
+			</if>
+			<if test="isRecommend != null">
+				and p.isRecommend = #{isRecommend}
+			</if>
+			<if test="location != null and location!= ''">
+				and p.id in 
+				(SELECT projectId from cs_project_area where province = #{location})
+			</if>
+			<if test="oneLevel != null">
+				and p.oneLevel = #{oneLevel}
+			</if>
+			<if test="twoLevel != null">
+				and p.twoLevel = #{twoLevel}
+			</if>
+			
+			<!-- 已捐或未捐项目 -->
+			<if test="ids != null and totalCopies ==null">
+				<if test="donateState == 0">
+					and p.id not in
+					<foreach item="item" index="index" collection="ids"
+					open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+				<if test="donateState == 1">
+					and p.id in
+					<foreach item="item" index="index" collection="ids"
+					open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+			</if>
+			<if test="ids == null and totalCopies ==null">
+				<if test="donateState == 0">
+				
+				</if>
+				<if test="donateState == 1">
+					and p.id=0
+				</if>
+			</if>
+			<if test="ids != null and totalCopies !=null">
+				and p.id in
+					<foreach item="item" index="index" collection="ids"
+					open="(" separator="," close=")">
+						#{item}
+					</foreach>
+			</if>
+			<if test="claimUserId != null">
+				and (claimUserId is null or claimUserId ='') 
+			</if>
+			<if test="type != null and type != ''">
+				and fu.userType = #{type}
+			</if>
+			
+ 		</where>
+ 		<choose>
+			<when test="orderBy !=null and orderBy !=''">
+				 order by ${orderBy}  <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+			</when>
+			<otherwise>
+			 		order by p.state,p.registrTime DESC
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="queryProjectBy30"  resultType="Project">
+		select
+		p.*, f.url as coverImageUrl,f.litterUrl as coverImageUrlLitter
+		,pf.realName,pf.workUnit,pf.sex,pf.familyAddress,pf.age,fu.userName as uname,fu.userType as userType,fu.nickName as nickName
+		from cs_project p left join b_file f on p.coverimageid = f.id
+		LEFT JOIN (SELECT realName,sex,familyAddress,age,projectId,workUnit from cs_project_userInfo
+		where
+				 personType = 2
+
+		) as pf
+		on p.id = pf.projectId LEFT JOIN frontUser fu  on p.userId = fu.id
+		where
+				 p.isHide = 0
+				and p.state = 240
+				and p.donatAmount/p.cryMoney &gt;= 0.2
+				order by p.issueTime DESC, p.donatAmount/p.cryMoney DESC
+
+	</select>
+	
+	<select id="queryKeeperProjectList" parameterType="Project" resultType="Project">
+	
+		select 
+			p.* ,t.role
+		from 
+			cs_project  p  
+			, (
+						select l.projectId,l.role FROM frontUser  f, loveGroupMent l 
+							<where>
+								f.id = l.userId  and l.role = 1
+
+								<if test=" userId !=null ">
+									  and f.id = #{userId}
+								</if>
+							</where> 
+				) t
+		<where>
+			p.id = t.projectId
+			<if test="state !=null">
+				and  p.state = #{state}
+			</if>
+			<if test="states != null">
+				and  p.state in 
+				<foreach collection="states" index="index" item="item" open="(" separator="," close=")">  
+		            #{item}   
+		   		 </foreach> 
+			</if>
+
+		</where>
+		order by 
+			p.registrTime DESC, p.leaveCopies DESC
+		
+	</select>
+	
+	<select id="countKeeperProjectByState" parameterType="Project" resultType="Project">
+	
+		select 
+			count(*) number,p.state
+		from 
+			cs_project  p  
+			, (
+						select l.projectId,l.role FROM frontUser  f, loveGroupMent l 
+							<where>
+								f.id = l.userId  and l.role = 1
+
+								<if test=" userId !=null ">
+									  and f.id = #{userId}
+								</if>
+								
+							</where> 
+				) t
+		<where>
+			p.id = t.projectId 
+		</where>
+		GROUP BY  p.state
+		
+	</select>
+	
+	<select id="queryKeeperProjectListChecking" parameterType="Project" resultType="Project">
+	
+		select 
+			p.* ,t.role
+		from 
+			cs_project  p  
+			, (
+						select l.projectId,l.role FROM frontUser  f, loveGroupMent l 
+							<where>
+								f.id = l.userId 
+
+								<if test=" userId !=null ">
+									  and f.id = #{userId}
+								</if>
+							</where> 
+				) t
+		
+		where	p.id = t.projectId  and p.state in(210,220) 
+		
+		order by 
+			p.registrTime DESC, p.leaveCopies DESC
+		
+	</select>
+	
+	<update id="update" parameterType="Project">
+		update cs_project
+		<set>
+
+			<if test="donatAmount != null">
+				donatAmount = #{donatAmount},
+			</if>
+			<if test="state != null">
+				state = #{state},
+			</if>
+			<if test="lastUpdateTime != null">
+				lastUpdateTime = #{lastUpdateTime},
+			</if>
+			<if test="cryMoney != null">
+				cryMoney = #{cryMoney},
+			</if>
+			<if test="panyAmount != null">
+				panyAmount = #{panyAmount},
+			</if>
+			<if test="donationNum !=null">
+				donationNum = #{donationNum},
+			</if>
+			<if test="lastUpdateTime != null">
+				lastUpdateTime = #{lastUpdateTime},
+			</if>
+
+			<if test="issueTime != null">
+				issueTime = #{issueTime},
+			</if>
+			<if test="deadline != null">
+				deadline = #{deadline}
+			</if>
+		</set>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+	
+	<insert id="save" parameterType="Project"  useGeneratedKeys="true"  keyProperty="id">
+		
+		insert  into cs_project
+		(
+			userId,
+			recommendedId,
+			field,
+			`type`,
+			title,
+			subTitle,
+			content,
+			contentImageId,
+			coverImageId,
+			location,
+			detailAddress,
+			cryMoney,
+			information,
+			state,
+			deadline,
+			lastUpdateTime,
+			fieldChinese,
+			isHide,
+			isRecommend,
+			issueTime,
+			isNeedVolunteer,
+			longitude,
+			latitude,
+			auditState,
+			recommendedPerson,
+			videoCoverImageId
+		)
+		values
+		(
+			#{userId},
+			#{recommendedId},
+			#{field},
+			#{type},
+			#{title},
+			#{subTitle},
+			#{content},
+			#{contentImageId},
+			#{coverImageId},
+			#{location},
+			#{detailAddress},
+			#{cryMoney},
+			#{information},
+			#{state},
+			#{deadline},
+			#{lastUpdateTime},
+			#{fieldChinese},
+			#{isHide},
+			#{isRecommend},
+			#{issueTime},
+			#{isNeedVolunteer},
+			#{launchExplain},
+			#{longitude},
+			#{latitude},
+			#{auditState},
+			#{recommendedPerson},
+			#{videoCoverImageId}
+		)
+		
+	</insert>
+	
+	<select id="queryProjectByDonateRecord" parameterType="integer" resultType="Project">
+		select id , title,field from cs_project where id  in (select projectId from donate_record where capitalinoutId = #{0})
+	</select>
+	
+	<select id="queryProjectByCompanyGoodHelp" parameterType="integer" resultType="Project">
+		select id , title from cs_project where id  in (select project_id from company_GoodHelp where capitalinoutId = #{0})
+	</select>
+	
+	<select id="queryProjectByCompanyGoodHelpBack" parameterType="integer" resultType="Project">
+		select  p.id , p.title , c.stopReason from cs_project p , company_GoodHelp c where p.id = c.project_id and c.capitalinoutId = #{0}
+	</select>
+	
+	<select id="countDonatePeople"  resultType="integer">
+		select SUM(c.donationNum) FROM cs_project c
+	</select>
+	
+	<select id="countDonatePeopleByUser"  resultType="integer" parameterType="Project">
+		select SUM(p.donationNum) FROM cs_project p 
+		<where>
+		
+			<if test="userId != null">
+				and p.userId = #{userId}
+			</if>
+					
+		</where>
+		
+	</select>
+	<!-- 同一发起人获得的捐赠总金额和总捐赠笔数 -->
+	<select id="countDonatePeopleByUserId"  resultType="Project" parameterType="Project">
+		select SUM(p.donationNum) as donationNum, SUM(p.donatAmount) as donatAmount FROM cs_project p 
+		<where>
+		
+			<if test="userId != null">
+				and p.userId = #{userId}
+			</if>
+					
+		</where>
+		
+	</select>
+	
+	<select id="countDonateProject" resultType="integer">
+		select count(*) FROM cs_project c
+		where
+		 (state =240 OR state =260)
+		 	AND c.field != #{0}
+		 	AND c.isHide != #{1}
+	</select>
+	
+<!-- 我的分享项目列表 -->
+	<select id="queryShareProject"  resultType="Project"  parameterType="Project">
+		SELECT
+			ps.donatAmount AS donatAmountShare,
+			ps.donationNum,
+			p.donatAmount,
+			p.cryMoney,
+			p.state,
+			p.title,
+			f.url as coverImageUrl,
+			p.id
+		FROM
+			(
+				SELECT
+					r.projectId,
+					SUM(r.donatAmount) AS donatAmount,
+					COUNT(r.userId) AS donationNum
+				FROM
+					donate_record r
+				WHERE
+					r.extensionPeople = #{userId}
+					and r.state = 302
+				GROUP BY
+					r.projectId
+			) AS ps
+		LEFT JOIN cs_project p ON ps.projectId = p.id
+		LEFT JOIN b_file  f  on p.coverImageId = f.id 
+		ORDER BY p.registrTime desc 
+	</select>
+	
+ 	<!-- 分享的项目数 -->
+	<select id="countQueryShareProject"  resultType="integer"  parameterType="Project">
+		SELECT
+			COUNT(DISTINCT r.projectId) 
+		FROM
+			donate_record r
+		WHERE
+			r.extensionPeople = #{userId}
+			and r.state = 302
+	</select>
+	
+	<!-- 分享的项目链接 募集到的总金额 -->
+	<select id="sumQueryShareProject"  resultType="double"  parameterType="Project">
+		SELECT
+			SUM(r.donatAmount) AS donatAmount
+		FROM
+			donate_record r
+		WHERE
+			r.extensionPeople = #{userId}
+			and r.state = 302
+	</select>
+	
+	<!-- 分享的项目链接 参与的总人数 -->
+	<select id="countQueryShareProjectUser"  resultType="integer"  parameterType="Project">
+		SELECT
+			count(r.userId)
+		FROM
+			donate_record r
+		WHERE
+			r.extensionPeople = #{userId}
+			and r.state = 302
+	</select>
+	
+	<!-- 一级类目 查询 -->
+	<select id="queryOneLevel"  resultType="Project"  parameterType="Project">
+		SELECT
+			p.oneLevel
+		FROM
+			cs_project p
+		<where>
+			<if test="field != null">
+				and p.field = #{field}
+			</if>
+		</where>
+		GROUP BY
+			p.oneLevel
+	</select>
+	
+	<!-- 二级类目 查询 -->
+	<select id="queryTwoLevel"  resultType="Project"  parameterType="Project">
+		SELECT
+			p.twoLevel
+		FROM
+			cs_project p
+		<where>
+			<if test="field != null">
+				and p.field = #{field}
+			</if>
+			<if test="oneLevel != null">
+				and p.oneLevel = #{oneLevel}
+			</if>
+		</where>
+		GROUP BY
+			p.twoLevel
+	</select>
+	<select id="countProjectNumByTags" resultType="integer"  parameterType="Project">
+		SELECT
+			COUNT(*)
+		FROM
+			cs_project
+		<where>
+			<if test="taglist != null">
+				<foreach collection="taglist" index="index" item="item">  
+		           OR  tag LIKE  "%"#{item}"%"   
+		   		 </foreach> 
+			</if>
+		</where>
+	</select>
+	<!-- 根据项目ids查询项目详情 -->
+	<select id="queryProjectByIds" resultType="Project"  parameterType="Project">
+		select p.*,f.url as coverImageUrl from cs_project p LEFT JOIN b_file f ON p.coverimageid = f.id
+			<where>
+				<!-- p.state = 240 and --> p.field !='garden'  <!-- and p.isHide = 0  -->
+				<if test="location != null">
+					and p.location like '%'#{location}'%'
+				</if>
+				
+				<if test="field != null">
+					and p.field = #{field}
+				</if>
+				<if test="fieldList != null">
+					and  p.field in 
+					<foreach collection="fieldList" index="index" item="item" open="(" separator="," close=")">  
+			            #{item}   
+			   		 </foreach> 
+				</if>
+				<if test="ids != null">
+					and p.id in
+					<foreach item="item" index="index" collection="ids"
+					open="(" separator="," close=")">
+						#{item}
+					</foreach>
+				</if>
+			</where>
+			<!-- order by issueTime DESC -->
+	</select>
+	<!-- 按条件查询good项目 -->
+	<select id="queryRandomProjectList" parameterType="Project" resultType="Project">
+		SELECT
+			cs.id,cs.title,u.workUnit
+		FROM
+			cs_project cs RIGHT JOIN cs_project_userInfo u on cs.id=u.projectId
+		<where>
+			personType =2
+			<!-- isHide=0 -->
+			<if test="fieldList != null">
+				and  cs.field in 
+				<foreach collection="fieldList" index="index" item="item" open="(" separator="," close=")">  
+		            #{item}   
+		   		 </foreach> 
+			</if>
+			<if test="field != null">
+				and cs.field = #{field}
+			</if>
+			<if test="state != null">
+				and cs.state = #{state}
+			</if>
+		 	ORDER BY RAND()
+		</where>
+	</select>
+	
+	<!-- 查询项目与受助人信息 -->
+	<select id="queryProjectAndUserInfo" parameterType="Project" resultType="Project">
+		select p.title,p.donatAmount,p.donationNum,p.information,p.longitude,p.latitude,u.realName,u.sex,u.age,u.familyAddress from cs_project p inner join cs_project_userInfo u on p.id=u.projectId where 
+		(p.state=240 or p.state=260) and u.personType=0 and p.field != 'good' and p.longitude is not null and p.longitude!='' and p.latitude is not null and p.latitude != '' and p.isHide=0
+	</select>
+	
+	<!-- 根据用户id查询项目ids -->
+	<select id="queryProjectIds" parameterType="integer" resultType="integer">
+		SELECT id from cs_project where userId=#{userId} and (state=240 or state=260)
+	</select>
+	
+	<!--  -->
+	<select id="queryProjectUserIds" resultType="Project">
+		SELECT
+			id as userId,nickName,province as workUnit ,city as location,area as detailAddress,registrTime as registrTime,coverImageId
+		FROM
+			frontUser
+		WHERE
+			id IN (
+				SELECT
+					*
+				FROM
+					(
+						SELECT DISTINCT
+							(userId) AS userId
+						FROM
+							cs_project p
+						WHERE
+							p.state = 240
+					) t
+			)
+	</select>
+	
+	<!-- 根据项目id查询一对一受助人数 -->
+	<select id="queryOneAidHelpByprojectId" parameterType="int" resultType="int">
+		SELECT count(*) from oneAid oa 
+		LEFT JOIN cs_project p ON p.id=oa.project_id 
+		WHERE oa.state=201 AND oa.project_id=#{projectId}
+	</select>
+	
+	<select id="queryByIndexProjectList" parameterType="Project" resultType="Project">
+		SELECT p.*,f.coverImageId as headImageId,f.nickName,area.province,area.city,area.area,f.userType  FROM cs_project p
+			LEFT JOIN frontUser f ON f.id = p.userId
+			LEFT JOIN cs_project_area area on p.id = area.projectId
+		<where>
+			p.state=240 and p.field != "good" AND DATEDIFF(NOW(),p.issueTime) &lt;= 180 and p.donatAmount &gt;= 5000
+			<if test="field != null and field != ''">
+				and p.field = #{field}
+			</if>
+		</where>
+		order by RAND()
+	</select>
+	
+	<select id="queryByNewProjectList" parameterType="Project" resultType="Project">
+		SELECT p.*,f.coverImageId as headImageId,f.nickName,area.province,area.city,area.area,f.userType  FROM cs_project p
+			LEFT JOIN frontUser f ON f.id = p.userId
+			LEFT JOIN cs_project_area area on p.id = area.projectId
+		<where>
+			 p.isHide = 0 and p.field != "good" and p.donatAmount/p.cryMoney &gt;= 0.2
+			<if test="launchExplain != null and launchExplain == 'nodisease' and (field == null or field == '')">
+				 and p.field != "disease" AND p.state=240
+			</if>
+			
+			<if test="(launchExplain == null or launchExplain == '') and field != null and field !=''">
+				and p.field = #{field} AND (p.state=240 or p.state =260)
+			</if>
+			<if test="title != null and title !=''">
+				and p.title like "%"#{title}"%"
+			</if>
+			<if test="province != null and province !=''">
+				and area.province like "%"#{province}"%"
+			</if>
+			order by p.issueTime DESC, p.donatAmount/p.cryMoney DESC
+		</where> 
+	</select>
+
+	<!-- 根据领域查询推荐项目 -->
+	<select id="queryByFieldOrArea" parameterType="string" resultType="Project">
+		SELECT p.* FROM cs_project p 
+			LEFT JOIN cs_project_area a ON a.projectId = p.id 
+		<where>
+			p.field != "good" AND p.state=240 and p.id != 285
+			<if test="field != null and field != '' ">
+				and p.field = #{field}
+			</if>
+		</where>
+		ORDER BY RAND(p.id) DESC
+	</select>
+
+	<!-- 更新项目数 -->
+	<update id="updateProjectShareCount" parameterType="Project">
+		update cs_project set shareCount = shareCount+1 where id = #{id} 
+	</update>
+	
+	<select id="queryProjectMaybeList" resultType="Project" parameterType="Project">
+		select p.*, f.url as coverImageUrl,f.litterUrl as coverImageUrlLitter from cs_project p  left join b_file f on p.coverImageId = f.id ORDER BY RAND()
+	</select>
+</mapper>

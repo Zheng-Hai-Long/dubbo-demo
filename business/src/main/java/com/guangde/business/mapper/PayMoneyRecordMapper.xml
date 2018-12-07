@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.PayMoneyRecordMapper">
+	<insert id="save" parameterType="PayMoneyRecord" useGeneratedKeys="true" keyProperty="id">
+		insert into payMoneyRecord
+		(
+			capitalinoutId,
+			projectId,
+			panMoney,
+			recipientName,
+			recipientBankType,
+			account,
+			payMoneyTime,
+			operator,
+			state,
+			userId,
+			applyMoney,
+			receiptImageId,
+			accountName
+		)
+		values
+		(
+			#{capitalinoutId},
+			#{projectId},
+			#{panMoney},
+			#{recipientName},
+			#{recipientBankType},
+			#{account},
+			#{payMoneyTime},
+			#{operator},
+			#{state},
+			#{userId},
+			#{applyMoney},
+			#{receiptImageId},
+			#{accountName}
+		)
+	</insert>
+	
+	<select id="queryByParam" parameterType="PayMoneyRecord" resultType="PayMoneyRecord">
+		select t.*,c.tranNum,p.title as projectTitle from payMoneyRecord t ,capitalinout c,cs_project p 
+		<where>
+			t.capitalinoutId = c.id
+			and p.id = t.projectId
+			<if test="operator != null">
+				and t.operator = #{operator}
+			</if>
+			<if test="state != null">
+				and t.state = #{state}
+			</if>
+			<if test="state != null">
+				and t.state = #{state}
+			</if>
+			<if test="field != null">
+				and p.field = #{field}
+			</if>
+			<if test="capitalinoutId != null">
+				and t.capitalinoutId = #{capitalinoutId}
+			</if>
+			<if test="account != null">
+				and t.account = #{account}
+			</if>
+			<if test="recipientBankType != null">
+				and t.recipientBankType = #{recipientBankType}
+			</if>
+			<if test="recipientName != null">
+				and t.recipientName = #{recipientName}
+			</if>
+			<if test="userId != null">
+				and t.userId = #{userId}
+			</if>
+			<if test="queryStartDate != null">
+				 AND t.payMoneyTime &gt;= #{queryStartDate} 
+			</if>
+			<if test="queryEndDate != null">
+				 AND t.payMoneyTime &lt;= #{queryEndDate} 
+			</if>
+			<if test="projectId != null">
+				and t.projectId = #{projectId}
+			</if>
+		</where>
+		order by t.payMoneyTime desc 
+	</select>
+	
+	<select id="queryFollowPayMoneyList" parameterType="PayMoneyRecord" resultType="PayMoneyRecord">
+	
+		SELECT
+			py.*, p.title AS projectTitle,p.field AS field,
+			p.donatAmount,
+			uc.accountName  as realName
+		FROM
+			(
+				SELECT
+					pr.panMoney,
+					pr.payMoneyTime,
+					pr.account,
+					pr.recipientName,
+					pr.userId,
+					d.projectId
+				FROM
+					(
+						SELECT
+							pm.panMoney,
+							pm.payMoneyTime,
+							pm.account,
+							pm.recipientName,
+							pm.userId,
+							pm.projectId
+						FROM
+							payMoneyRecord pm
+						WHERE
+							pm.state = 302
+					) AS pr
+				RIGHT JOIN (
+					SELECT DISTINCT
+						projectId
+					FROM
+						donate_record
+					WHERE
+						userId = #{userId}
+					AND state = 302 
+					AND projectId != 285
+				) AS d ON pr.projectId = d.projectId
+			) AS py
+		JOIN cs_project p ON py.projectId = p.id
+		LEFT JOIN 
+		userCard
+		AS uc ON py.account = uc.card GROUP BY py.projectId
+		ORDER BY py.payMoneyTime DESC
+	</select>
+	
+	<update id="update" parameterType="PayMoneyRecord">
+		update payMoneyRecord 
+		<set>
+			<if test="state != null">
+				state = #{state},
+			</if>
+			<if test="payMoneyTime != null">
+				payMoneyTime = #{payMoneyTime},
+			</if>
+			<if test="receiptImageId != null">
+				receiptImageId = #{receiptImageId},
+			</if>
+			<if test="applyMoney != null">
+				applyMoney = #{applyMoney},
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<select id="queryPayMoneyListGo" parameterType="PayMoneyRecord" resultType="PayMoneyRecord">
+		SELECT
+			*
+		FROM
+			(
+				SELECT
+					py.*, p.title AS projectTitle,
+					p.field AS field,
+					pf.realName
+				FROM
+					(
+						SELECT
+							pm.panMoney,
+							pm.payMoneyTime,
+							pm.account,
+							pm.projectId,
+							pm.accountName
+						FROM
+							payMoneyRecord pm
+						<!-- LEFT JOIN userCard uc ON uc.card = pm.account AND uc.userId = pm.userId -->
+						WHERE
+							pm.state = 302 GROUP BY pm.id
+					) AS py
+				LEFT JOIN cs_project p ON py.projectId = p.id
+				LEFT JOIN (
+					SELECT
+						*
+					FROM
+						cs_project_userInfo
+					WHERE
+						personType = 0
+				) AS pf ON py.projectId = pf.projectId
+			) AS pay
+		<where>
+			<if test="projectTitle != null">
+				pay.projectTitle LIKE '%${projectTitle}%'
+				or 
+				pay.realName  LIKE '%${projectTitle}%'
+			</if>
+		</where>
+		order  by pay.payMoneyTime DESC 
+	</select>
+
+	<!-- 打款总金额 -->
+	<select id="sumPayMoney" resultType="PayMoneyRecord">
+		select sum(panmoney) as panmoney, count(DISTINCT projectId) as panMoneyNum from payMoneyRecord where state=302
+	</select>
+	
+</mapper>

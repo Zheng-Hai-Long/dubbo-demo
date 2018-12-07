@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.ReportMapper">
+
+	<select id="queryByParam"  parameterType="Report" resultType="Report">
+		select r.*,a.realName as reportPeopleName from  report r LEFT JOIN action_user a on r.reportPeople=a.id
+		<where>
+			r.type  in (4,6)
+			<if test="id != null">
+				and  r.id = #{id}
+			</if>
+			<if test="projectId != null">
+				and r.projectId = #{projectId}
+			</if>
+			<if test="type !=null ">
+				and r.type = #{type}
+			</if>
+			<if test=" reportPeople != null">
+			 	and r.reportPeople = #{reportPeople}
+			</if>
+			<if test="queryStartDate != null">
+				and r.operatorTime &gt;=#{queryStartDate}
+			</if>
+			<if test="queryEndDate != null">
+				and r.operatorTime &lt;=#{queryEndDate}
+			</if>
+		</where>
+		order  by  r.operatorTime DESC 
+	</select>
+	
+	<insert id="save" parameterType="Report" useGeneratedKeys="true" keyProperty="id">
+	
+		insert  into  report  
+		(
+			projectId,
+			type,
+			content,
+			reportPeople,
+			operatorTime,
+			contentImageId
+		)
+		values
+		(
+			#{projectId},
+			#{type},
+			#{content},
+			#{reportPeople},
+			#{operatorTime},
+			#{contentImageId}	
+		)
+	</insert>
+	
+	<update id="update" parameterType="Report">
+		update report 
+		<set>
+			<if test="type != null">
+				type = #{type},
+			</if>
+			<if test="content != null">
+				content = #{content},
+			</if>
+			<if test="reportPeople != null">
+				reportPeople = #{reportPeople},
+			</if>
+			<if test="operatorTime != null">
+				operatorTime = #{operatorTime},
+			</if>
+		</set>
+		where  id = #{id}
+	</update>
+
+	
+</mapper>	

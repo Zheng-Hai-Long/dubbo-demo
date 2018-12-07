@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.DonateTimeMapper">
+	
+	<insert id="save" parameterType="DonateTime" useGeneratedKeys="true" keyProperty="id">
+		insert into cs_donate_time 
+		(
+			userId,
+			type,
+			notice,
+			category,
+			money,
+			number,
+			state,
+			createtime,
+			projectIds,
+			dayNumber
+		)
+		values
+		(
+			#{userId},
+			#{type},
+			#{notice},
+			#{category},
+			#{money},
+			#{number},
+			#{state},
+			#{createtime},
+			#{projectIds},
+			#{dayNumber}
+		)
+	</insert>
+	<update id="update" parameterType="DonateTime">
+		update cs_donate_time
+		<set>
+			<if test="userId != null and userId != 0">
+				userId=#{userId},
+			</if>
+			<if test="state != null and state != 0">
+				state=#{state},
+			</if>
+			<if test="type != null">
+				type=#{type},
+			</if>
+			<if test="notice != null">
+				notice=#{notice},
+			</if>
+			<if test="category != null">
+				category=#{category},
+			</if>
+			<if test="money != null">
+				money=#{money},
+			</if>
+			<if test="number != null and number != 0">
+				number=#{number},
+			</if>
+			<if test="dayNumber != null">
+				dayNumber=#{dayNumber},
+			</if>
+			<if test="createtime != null">
+				createtime=#{createtime}
+			</if>
+		</set>
+		<where>
+			<if test="id != null and id != 0">
+				and id = #{id}
+			</if>
+		</where>
+	</update>
+	<select id="queryByUserId" parameterType="int" resultType="DonateTime">
+		SELECT
+			*
+		FROM
+			cs_donate_time
+		WHERE
+			state != 200 and userId = #{userId} 
+		ORDER BY createtime DESC
+	</select>
+	<select id="queryDonateTimeByParam" parameterType="DonateTime" resultType="DonateTime">
+		SELECT
+			*
+		FROM
+			cs_donate_time
+		<where>
+			<if test="userId != null">
+				and userId = #{userId}
+			</if>
+			<if test="state != null">
+				and state = #{state}
+			</if>
+			<if test="id != null">
+				and id = #{id}
+			</if>
+			<if test="projectIds != null">
+				and projectIds = #{projectIds}
+			</if>
+		</where>
+		ORDER BY createtime DESC
+	</select>
+	<select id="queryById" parameterType="int" resultType="DonateTime">
+		SELECT
+			d.*
+		FROM
+			cs_donate_time d
+		WHERE
+			d.id=#{id}
+	</select>
+	<delete id="delete" parameterType="int">
+		delete from cs_donate_time where id=#{id}
+	</delete>
+	
+</mapper>

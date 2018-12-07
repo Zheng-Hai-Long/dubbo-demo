@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.ProductSpecificationMapper">
+	
+	<select id = "queryByParam"  parameterType="map" resultType="ProductSpecification">
+		select * from product_specification
+			<where>
+				<if test="productId != null">
+				 	and productId = #{productId}
+				</if>
+				<if test="id != null">
+					and id = #{id}
+				</if>
+			</where>
+			order by id DESC
+	</select>
+
+	<select id="queryById" parameterType="integer" resultType="ProductSpecification">
+		select * from product_specification where id = #{id}
+	</select>
+
+	<update id="update" parameterType="ProductSpecification">
+		update product_specification
+		<set>
+			<if test="updateTime != null">
+				updateTime = #{updateTime},
+			</if>
+			<if test="stock != null">
+				stock = #{stock}
+			</if>
+		</set>
+		where id =#{id}
+	</update>
+	
+</mapper>

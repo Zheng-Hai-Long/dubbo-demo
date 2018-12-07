@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.NewsMapper">
+	
+	<select id="queryByParam" parameterType="News" resultType="News">
+		select id,title,abstracts,createtime,ordertime,coverImageId,content,contentImageId  from news 
+			<where>
+				<if test="title != null and title != ''">
+					and title  = #{title}
+				</if>
+				
+				<if test="abstracts != abstracts">
+					and  abstracts = #{abstracts}
+				</if>
+				
+				<if test="keywords != null and keywords != ''">
+					and keywords = #{keywords}
+				</if>	
+				
+				<if test="top != null">
+					and top = #{top}
+				</if>	
+				
+				<if test="news_column != null and news_column != ''">
+					and news_column = #{news_column}
+				</if>
+				
+				<if test="sub_column != null">
+					and sub_column = #{sub_column}
+				</if>
+				
+				<if test="third_column != null">
+					and third_column = #{third_column}
+				</if>	
+				
+				<if test= "source != source">
+					and source = #{source}
+				</if>
+				
+				<if test="type != null and type != ''">
+					and `type` = #{type }
+				</if>	
+				
+				<if test="queryStartDate != null">
+					and createtime &gt;=#{queryStartDate}
+				</if>
+				<if test="queryEndDate != null">
+					and createtime &lt;=#{queryEndDatep}
+				</if>
+			</where>
+			
+			<choose>
+				<when test="orderBy != null">
+						order by ${orderBy}
+						<if test="orderDirection != null and orderDirection != '' ">
+							${orderDirection}
+						</if>
+				</when>	
+				
+				<otherwise>
+					order by top desc ,ordertime desc
+				</otherwise>
+			</choose>
+	</select>
+	
+	<select id="queryById" parameterType="integer" resultType="News">
+			select * from news where id = #{0} 
+	</select>
+	
+	<update id="update" parameterType="News">
+		update news 
+			<set>
+				<if test="visits != null">
+					visits = #{visits},
+				</if>
+				<if test="ordertime != null">
+					ordertime = #{ordertime},
+				</if>
+			</set>
+			where id = #{id}
+	</update>
+	
+	<select id="queryNextNews"  parameterType="News" resultType="News">
+		
+		select * from news
+		where id = (
+			select id from news where ordertime = (
+			select max(ordertime) from news 
+				<where>  
+				<if test="ordertime != null">
+					and ordertime &lt; #{ordertime} 
+				</if>
+				<if test="news_column != null">
+					and news_column = #{news_column}
+				</if>
+				</where> 
+				order by ordertime desc 
+				)
+		)
+		
+	</select>
+	
+	<select id="queryPreviousNews"  parameterType="News" resultType="News">
+	
+		select * from news
+		where id = (
+		select id from news where ordertime = (
+			select min(ordertime) from news 
+			<where>
+		
+				<if test="ordertime != null">
+					and ordertime &gt; #{ordertime} 
+				</if>
+				<if test="news_column != null">
+					and news_column = #{news_column}
+				</if>
+			</where> 
+			order by ordertime desc 
+			)
+		)
+		
+	</select>
+	
+</mapper>

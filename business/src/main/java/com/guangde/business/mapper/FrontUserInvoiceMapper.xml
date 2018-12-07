@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.FrontUserInvoiceMapper">
+		<insert id="save" parameterType="FrontUser_invoice"  useGeneratedKeys="true" keyProperty="id">
+		insert into frontUser_invoice
+		(
+			id,
+			userId,
+			addressId,
+			invoiceAmount,
+			content,
+			isFree,
+			invoiceHead,
+			mailAmount,
+			mailCompany,
+			state,
+			mailCode,
+			createTime,
+			lastUpdateTime,
+			info
+		)
+		values
+		(
+			#{id},
+			#{userId},
+			#{addressId},
+			#{invoiceAmount},
+			#{content},
+			#{isFree},
+			#{invoiceHead},
+			#{mailAmount},
+			#{mailCompany},
+			#{state},
+			#{mailCode},
+			#{createTime},
+			#{lastUpdateTime},
+			#{info}
+		)
+	</insert>
+
+	<update id="update" parameterType="FrontUser_invoice">
+		update frontUser_invoice
+		<set>
+			<if test="userId != null">
+				userId = #{userId},
+			</if>
+			<if test="addressId != null">
+				addressId = #{addressId},
+			</if>
+			<if test="invoiceAmount != null">
+				invoiceAmount = #{invoiceAmount},
+			</if>
+			<if test="content != null">
+				content = #{content},
+			</if>
+			<if test="isFree != null">
+				isFree = #{isFree},
+			</if>
+			<if test="invoiceHead != null">
+				invoiceHead = #{invoiceHead},
+			</if>
+			<if test="mailAmount != null">
+				mailAmount = #{mailAmount},
+			</if>
+			<if test="mailCompany != null">
+				mailCompany = #{mailCompany},
+			</if>
+			<if test="state != null">
+				state = #{state},
+			</if>
+			<if test="mailCode != null">
+				mailCode = #{mailCode},
+			</if>
+
+			<if test="lastUpdateTime != null">
+				lastUpdateTime = #{lastUpdateTime},
+			</if>
+			<if test="info != null">
+				info = #{info},
+			</if>
+		</set>
+			where  id = #{id}
+	</update>
+
+	<select id="queryById"  resultType="FrontUser_invoice"  parameterType="Integer">
+			select * from frontUser_invoice  where id = #{0}
+	</select>
+
+	<select id="queryByParam"  resultType="FrontUser_invoice"  parameterType="FrontUser_invoice">
+			SELECT
+				fi.*, fa.province,
+				fa.city,
+				fa.area,
+				fa.detailAddress,
+				fa.name AS name,
+				fa.mobile AS mobile
+			FROM
+				frontUser_invoice fi
+			LEFT JOIN frontUser_address fa ON fa.id = fi.addressId
+				<where>
+					<if test="userId != null">
+						and fi.userId = #{userId}
+					</if>
+					<if test="addressId != null">
+						and fi.addressId = #{addressId}
+					</if>
+					<if test="info != null">
+						and fi.info = #{info}
+					</if>
+					<if test="isFree != null">
+						and fi.isFree = #{isFree}
+					</if>
+					<if test="invoiceHead != null">
+						and fi.invoiceHead = #{invoiceHead}
+					</if>
+					<if test="mailAmount != null">
+						and fi.mailAmount = #{mailAmount}
+					</if>
+					<if test="mailCompany != null">
+						and fi.mailCompany = #{mailCompany}
+					</if>
+					<if test="state != null">
+						and fi.state = #{state}
+					</if>
+					<if test="mailCode != null">
+						and fi.mailCode = #{mailCode}
+					</if>
+				</where>
+				order by createTime desc
+	</select>
+
+
+	<select id="countQueryByParam"  resultType="Integer"  parameterType="FrontUser_invoice">
+			select count(*) from frontUser_invoice
+				<where>
+					<if test="userId != null">
+						and userId = #{userId}
+					</if>
+					<if test="addressId != null">
+						and addressId = #{addressId}
+					</if>
+
+					<if test="isFree != null">
+						and isFree = #{isFree}
+					</if>
+					<if test="invoiceHead != null">
+						and invoiceHead = #{invoiceHead}
+					</if>
+					<if test="mailAmount != null">
+						and mailAmount = #{mailAmount}
+					</if>
+					<if test="mailCompany != null">
+						and mailCompany = #{mailCompany}
+					</if>
+					<if test="state != null">
+						and state = #{state}
+					</if>
+					<if test="mailCode != null">
+						and mailCode = #{mailCode}
+					</if>
+				</where>
+	</select>
+	
+	<select id="sumDonatAmount"  parameterType="DonateRecord" resultType="double">
+  		select SUM(donatAmount)  from donate_record
+		<where>
+			state = 302
+			<if test="donateIds != null">
+				AND  id not in
+				<foreach collection="donateIds" index="index" item="item" open="(" separator="," close=")">  
+		            #{item}   
+		   		 </foreach> 
+			</if>
+			<if test="userId != null">
+				and userId = #{userId}
+			</if>
+		</where>
+  	</select>
+
+</mapper>

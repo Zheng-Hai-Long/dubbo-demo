@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.FrontUserMapper">
+
+	<!-- 根据手机号查询用户 -->
+	<select id="queryByMobile" resultType="FrontUser" parameterType="string">
+		select * from frontUser where mobileNum = #{mobileNum}
+	</select>
+
+	<select id="getUserByUserName"  resultType="FrontUser"  parameterType="string">
+			select * from frontUser where userName=#{userName}
+	</select>
+	<select id="getUserByRegisterIP"  resultType="FrontUser"  parameterType="string">
+			select * from frontUser where registerIP=#{0} and userType = #{1}
+	</select>
+	<select id="countDonateAmount" resultType="double">
+		select sum(totalAmount) from frontUser  
+	</select>
+	<select id="queryByLock" resultType="FrontUser" parameterType="integer">
+			select * from frontUser where id = #{0} for update
+	</select>
+	
+	<select id="queryPersonCenter"  resultType="FrontUser"  parameterType="FrontUser">
+			select 
+				f.totalAmount,COUNT(DISTINCT r.projectId) countProject,f.userName ,  TIMESTAMPDIFF(DAY,f.registrTime,NOW()) as  days,
+			FORMAT
+			(
+				(
+				(select COUNT(id) FROM frontUser where totalAmount &lt;(SELECT totalAmount from frontUser <where> <if test ="id !=null"> and id = #{id}</if></where>))/(SELECT COUNT(id) from frontUser )
+				),2
+
+			) as percent
+			from 
+				frontUser f,donate_record r  
+			<where>
+				 f.id = r.userId  and r.state = 302
+				 <if test="id != null">
+				 	and f.id = #{id}
+				 </if>
+			</where>
+	</select>
+	
+	<select id="queryUserByParam"  resultType="FrontUser"  parameterType="FrontUser">
+			select * from frontUser f 
+			<where>
+				<if test="realName != null">
+					and  realName=#{realName}
+				</if>
+				<if test="idCard != null">
+					and  idCard=#{idCard}
+				</if>
+				<if test="mobileNum != null">
+					and mobileNum=#{mobileNum}
+				</if>
+				<!--<if test="realState != null">
+					and realState=#{realState}
+				</if>-->
+				
+				<if test="registrSoure != null">
+					and registrSoure = #{registrSoure}
+				</if>
+				<!--<if test="extensionPeople != null">
+					and extensionPeople = #{extensionPeople}
+				</if>-->
+				<!--<if test="fieldExpert != null">
+					and fieldExpert = #{fieldExpert}
+				</if>-->
+				<if test="description != null">
+					and description = #{description}
+				</if>
+
+				<if test=" mobileState!= null">
+					and mobileState = #{mobileState}
+				</if>
+				<if test="userName != null">
+					and userName = #{userName}
+				</if>
+				<if test="nickName != null">
+					and nickName = #{nickName}
+				</if>
+				<if test="userType != null">
+					and userType = #{userType}
+				</if>
+				<if test="registerIP != null">
+					and registerIP = #{registerIP}
+				</if>
+			</where>
+				<choose>
+					<when test="orderBy !=null and orderBy !=''">
+						 order by ${orderBy}  <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+					</when>
+					<otherwise>
+						order by registrTime DESC
+					</otherwise>
+				</choose>
+	</select>
+	
+	<insert id="saveFrontUser" parameterType="FrontUser"  useGeneratedKeys="true" keyProperty="id">
+		insert into frontUser
+		(
+			userType,
+			userName,
+			userPass,
+			nickName,
+			registrTime,
+			realName,
+			idCard,
+			mobileNum,
+			lastLoginTime,
+			totalAmount,
+			registrSoure,
+			mobileState,
+			description,
+			balance,
+			availableBalance,
+			registerIP,
+			lastLoginIP,
+			coverImageId,
+			openid,
+			isVolunteer
+		)
+		values
+		(
+			#{userType},
+			#{userName},
+			#{userPass},
+			#{nickName},
+			#{registrTime},
+			#{realName},
+			#{idCard},
+			#{mobileNum},
+			#{lastLoginTime},
+			#{totalAmount},
+			#{registrSoure},
+			#{mobileState},
+			#{description},
+			#{balance},
+			#{availableBalance},
+			#{registerIP},
+			#{lastLoginIP},
+			#{coverImageId},
+			#{openid},
+			#{isVolunteer}
+		)
+	</insert>
+	
+	<select id="queryById"  resultType="FrontUser"  parameterType="integer">
+		select f.*, b.middleUrl coverImageUrl  from frontUser f left join b_file b on f.coverImageId = b.id where f.id=#{id}
+	</select>
+	
+	<select id="queryDaysById"  resultType="FrontUser"  parameterType="integer">
+		select f.*,TIMESTAMPDIFF(DAY,f.registrTime,NOW()) as  days from frontUser f where id=#{id}
+	</select>
+	
+	<update id="update"  parameterType="FrontUser">
+		update frontUser 
+		<set>
+			<if test="realName != null">
+				 realName=#{realName},
+			</if>
+			<if test="nickName != null">
+				 nickName = #{nickName},
+			</if>
+			<if test="userName != null">
+				 userName = #{userName},
+			</if>
+			<if test="idCard != null">
+				idCard=#{idCard},
+			</if>
+			<if test="mobileNum != null">
+				mobileNum=#{mobileNum},
+			</if>
+
+			<if test="totalAmount != null">
+				totalAmount = #{totalAmount},
+			</if>
+
+			<if test="registrSoure != null">
+				registrSoure = #{registrSoure},
+			</if>
+
+			<if test="description != null">
+				description = #{description},
+			</if>
+
+			<if test=" coverImageId!= null">
+				coverImageId = #{coverImageId},
+			</if>
+			
+			<if test=" mobileState!= null">
+				mobileState = #{mobileState},
+			</if>
+			
+			<if test="availableBalance != null">
+				availableBalance = #{availableBalance},
+			</if>
+			<if test="balance != null">
+				balance = #{balance},
+			</if>
+			<if test="sex != null">
+				sex = #{sex},
+			</if>
+			<if test="age != null">
+				age = #{age},
+			</if>
+			<if test="workUnit != null">
+				workUnit = #{workUnit},
+			</if>
+			<if test="persition != null">
+				persition = #{persition},
+			</if>
+			<if test="isVolunteer != null">
+				isVolunteer = #{isVolunteer},
+			</if>
+			<if test="lastLoginTime != null">
+				lastLoginTime =#{lastLoginTime},
+			</if>
+			<if test="donateNum != null">
+				donateNum = #{donateNum}
+			</if>
+		</set> 
+	    where
+	       id=#{id}	   
+	</update>
+	
+	<select id="countCompanyTotalAmount"  parameterType="integer" resultType="double">
+		select sum(totalAmount) from  frontUser  where id in(select userId from employee where company_userId = #{0}) or id = #{0}  
+	</select>
+	
+	<select id="queryCompanyUserList" parameterType="FrontUser" resultType="FrontUser">
+			select *  from frontUser  where id in (
+				select userId from company where state = #{realState}
+			)
+			<choose>
+					<when test="orderBy !=null and orderBy !=''">
+						 order by ${orderBy}  <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+					</when>
+					<otherwise>
+						order by registrTime DESC
+					</otherwise>
+				</choose>
+	</select>
+	
+	<select id="queryByIdList" parameterType="int" resultType="FrontUser">
+		SELECT
+			f.nickName,
+			f.userName,
+			f.coverImageId,
+			f.id
+		FROM
+			frontUser f
+		INNER JOIN cs_good_library_prople g ON g.userId = f.id
+		WHERE
+			g.state = 201 AND g.libraryId = #{0}
+	</select>
+
+	<!-- 爱心数据（慈善家/传播者） -->
+	<select id="queryLoveData" parameterType="string" resultType="FrontUser">
+		SELECT
+			u.id,
+			u.coverImageId,
+			u.nickName,
+			u.grade,
+			count(1) donateNum,
+			CONVERT(sum(donatAmount),DECIMAL(18,2)) totalAmount,
+			count(DISTINCT d.projectId) AS donateProjectNum
+		FROM
+			donate_record d
+
+		<if test="userType == 'individualUsers'">
+			LEFT JOIN frontUser u ON d.userId = u.id
+		</if>
+
+		<if test="userType == 'extensionPeople'">
+			LEFT JOIN frontUser u ON d.extensionPeople = u.id
+		</if>
+
+		WHERE
+			state = 302
+		AND d.projectId != 285
+		<!-- 本月 -->
+		<if test="donateTimeStr == '本月'">
+			AND DATE_FORMAT( d.donatTime, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+		</if>
+		<!-- 上个月 -->
+		<if test="donateTimeStr == '上个月'">
+			AND PERIOD_DIFF( date_format( now( ) , '%Y%m' ) , date_format( d.donatTime, '%Y%m' ) ) =1
+		</if>
+		<!-- 按年 -->
+		<if test="donateTimeStr != null and donateTimeStr!= '' and donateTimeStr != '本月' and donateTimeStr != '上个月'">
+			AND year(d.donatTime) = #{donateTimeStr}
+		</if>
+		<if test="userType == 'individualUsers'">
+			AND userType != 'enterpriseUsers'
+			GROUP BY
+			userId
+		</if>
+		<if test="userType == 'extensionPeople'">
+			AND d.extensionPeople != ''
+			GROUP BY
+			d.extensionPeople
+		</if>
+
+		ORDER BY
+			sum(donatAmount) DESC
+	</select>
+
+	<!-- 爱心数据（企业/团体） -->
+	<select id="queryEnterpriseLoveData" parameterType="string" resultType="FrontUser">
+		SELECT * FROM (SELECT
+		u.id,
+		u.coverImageId,
+		u.nickName,
+		u.grade,
+		count(1) donateNum,
+		CONVERT(sum(donatAmount),DECIMAL(18,2)) totalAmount,
+		count(DISTINCT d.projectId) AS donateProjectNum
+		FROM
+		donate_record d
+		LEFT JOIN frontUser u ON d.userId = u.id
+		WHERE
+		state = 302
+		AND d.projectId != 285
+		AND userType = 'enterpriseUsers'
+		<!-- 本月 -->
+		<if test="donateTimeStr == '本月'">
+			AND DATE_FORMAT( d.donatTime, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+		</if>
+		<!-- 上个月 -->
+		<if test="donateTimeStr == '上个月'">
+			AND PERIOD_DIFF( date_format( now( ) , '%Y%m' ) , date_format( d.donatTime, '%Y%m' ) ) =1
+		</if>
+		<!-- 按年 -->
+		<if test="donateTimeStr != null and donateTimeStr!= '' and donateTimeStr != '本月' and donateTimeStr != '上个月'">
+			AND year(d.donatTime) = #{donateTimeStr}
+		</if>
+		GROUP BY
+		userId
+		UNION
+		SELECT
+		c.userId AS id,
+		c.coverImageId,
+		c.launchName AS nickName,
+		u.grade,
+		c.totalDonateNum donateNum,
+		c.totalDonateMoney totalAmount,
+		1 AS donateProjectNum
+		FROM
+		together_config c
+		LEFT JOIN frontUser u ON c.userId = u.id
+		WHERE
+		teamState = 100 and c.totalDonateNum &gt; 0
+		<!-- 本月 -->
+		<if test="donateTimeStr == '本月'">
+			AND DATE_FORMAT( c.createTime, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )
+		</if>
+		<!-- 上个月 -->
+		<if test="donateTimeStr == '上个月'">
+			AND PERIOD_DIFF( date_format( now( ) , '%Y%m' ) , date_format( c.createTime , '%Y%m' ) ) =1
+		</if>
+		<!-- 按年 -->
+		<if test="donateTimeStr != null and donateTimeStr!= '' and donateTimeStr != '本月' and donateTimeStr != '上个月'">
+			AND year(c.createTime) = #{donateTimeStr}
+		</if>
+		) temp order by totalAmount desc
+	</select>
+
+	<!-- 爱心数据（慈善家/传播者）人数 -->
+	<select id="countLoveData" parameterType="string" resultType="int">
+
+		SELECT
+		<if test="userType == 'individualUsers'">
+			count(DISTINCT userId) userNum
+		</if>
+		<if test="userType == 'extensionPeople'">
+			count(DISTINCT d.extensionPeople) userNum
+		</if>
+		FROM
+			donate_record d
+		WHERE
+			d.donatTime &gt;= '2016-01-01 00:00:00'
+			and projectId <![CDATA[ <> ]]> 285
+		<if test="userType == 'individualUsers'">
+			and d.userId in (select id from frontUser where userType = 'individualUsers' or userType ='otherUsers(7)' or userType ='touristUsers')
+		</if>
+		<if test="userType == 'extensionPeople'">
+			and d.extensionPeople in (select id from frontUser where userType = 'individualUsers' or userType ='otherUsers(7)' or userType ='touristUsers')
+		</if>
+		and state = 302
+	</select>
+
+	<!-- 爱心数据（企业/团体）人数 -->
+	<select id="countEnterpriseLoveData" resultType="int">
+		SELECT sum(userNum) FROM (SELECT
+			count(DISTINCT userId) userNum
+		FROM
+			donate_record d
+		LEFT JOIN frontUser u ON d.userId = u.id
+		WHERE
+			state = 302
+			AND d.projectId != 285
+			AND userType = 'enterpriseUsers'
+			AND d.donatTime &gt;= '2016'
+
+		UNION
+		SELECT
+			count(1) userNum
+		FROM
+			together_config c
+		LEFT JOIN frontUser u ON c.userId = u.id
+		WHERE
+			teamState = 100  and c.totalDonateNum &gt; 0
+			<!-- AND c.createTime &gt;= '2016' -->
+		) temp
+	</select>
+</mapper>

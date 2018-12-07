@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.ProjectVolunteerMapper">
+	<insert id="save"  parameterType="ProjectVolunteer" useGeneratedKeys="true" keyProperty="id">
+		insert into cs_project_volunteer 
+		(
+			projectId,
+			`name`,
+			sex,
+			birthday,
+			location,
+			indentity,
+			mobile,
+			`position`,
+			email,
+			serviceTime,
+			historyService,
+			personType,
+			groupName,
+			groupType,
+			`number`,
+			linkMan,
+			address,
+			status,
+			field,
+			countSign,
+			userId,
+			education,
+			skill,
+			remark
+		)
+		values
+		(
+			#{projectId},
+			#{name},
+			#{sex},
+			#{birthday},
+			#{location},
+			#{indentity},
+			#{mobile},
+			#{position},
+			#{email},
+			#{serviceTime},
+			#{historyService},
+			#{personType},
+			#{groupName},
+			#{groupType},
+			#{number},
+			#{linkMan},
+			#{address},
+			#{status},
+			#{field},
+			#{countSign},
+			#{userId},
+			#{education},
+			#{skill},
+			#{remark}
+		)
+	</insert>
+	
+	<update id="update" parameterType="ProjectVolunteer">
+		update cs_project_volunteer 
+		<set>
+			<if test="name != null">
+				`name` = #{name},
+			</if>
+			<if test="sex != null">
+				sex = #{sex},
+			</if>
+			<if test="birthday != null">
+				birthday = #{birthday},
+			</if>
+			<if test="location != null">
+				location = #{location},
+			</if>
+			<if test="indentity != null">
+				indentity = #{indentity},
+			</if>
+			<if test="mobile != null">
+				mobile = #{mobile},
+			</if>
+			<if test="position != null">
+				`position` = #{position},
+			</if>
+			<if test="email != null">
+				email = #{email},
+			</if>
+			<if test="serviceTime != null">
+				serviceTime = #{serviceTime},
+			</if>
+			<if test="historyService != null">
+				historyService = #{historyService},
+			</if>
+			<if test="personType != null">
+				personType = #{personType},
+			</if>
+			<if test="groupName != null">
+				groupName = #{groupName},
+			</if>
+			<if test="groupType != null">
+				groupType = #{groupType},
+			</if>
+			
+			<if test="number != null">
+				`number` = #{number},
+			</if>
+			<if test="linkMan != null">
+				linkMan = #{linkMan},
+			</if>
+			<if test="address != null">
+				address = #{address},
+			</if>
+			<if test="status != null">
+				status = #{status},
+			</if>
+			<if test="field != null">
+				field = #{field},
+			</if>
+			<if test="countSign != null">
+				countSign = #{countSign},
+			</if>
+		</set>
+		<where>
+			<if test="projectId != null">
+				and projectId = #{projectId}
+			</if>
+			<if test="personType != null">
+				and personType = #{personType}
+			</if>
+			<if test="id != null">
+				and id = #{id}
+			</if>
+		</where>
+	</update>
+	
+	<select id="queryByParam"  parameterType="ProjectVolunteer" resultType="ProjectVolunteer">
+		SELECT
+		  cv.*,p.title AS pTitle
+		FROM
+			cs_project_volunteer cv
+		LEFT JOIN cs_project p ON p.id = cv.projectId
+		<where>
+			<if test="projectId != null">
+				and cv.projectId = #{projectId}
+			</if>
+			<if test="personType != null">
+				and cv.personType = #{personType}
+			</if>
+			<if test="id != null">
+				and cv.id = #{id}
+			</if>
+			<if test="name != null">
+				and cv.name = #{name}
+			</if>
+			<if test="userId != null">
+				and cv.userId = #{userId}
+			</if>
+		</where>
+		ORDER BY cv.createTime DESC
+	</select>
+	
+	<select id="count"  parameterType="ProjectVolunteer" resultType="integer">
+		SELECT
+		 	count(*)
+		FROM
+			cs_project_volunteer cv
+		LEFT JOIN cs_project p ON p.id = cv.projectId
+		<where>
+			<if test="projectId != null">
+				and cv.projectId = #{projectId}
+			</if>
+			<if test="personType != null">
+				and cv.personType = #{personType}
+			</if>
+			<if test="id != null">
+				and cv.id = #{id}
+			</if>
+			<if test="name != null">
+				and cv.name = #{name}
+			</if>
+		</where>
+	</select>
+	
+	<select id="queryById"  resultType="ProjectVolunteer"  parameterType="integer">
+		SELECT
+			*
+		FROM
+			cs_project_volunteer
+		WHERE
+			id = #{id}
+	</select>
+	
+	<!-- 报名明细（姓名，性别，地址，职业，签到次数，累计时长） -->
+	<select id="queryEntryInfo" parameterType="map" resultType="ProjectVolunteer">
+		<!-- 未签到 -->
+		<if test="state == 0">
+			select v.userId,v.`name`,v.sex,v.address,v.position,ac.formId as projectId
+			,count(acs.id) as countSign,sum(acs.timeNum) as totalTimeNum 
+			from cs_project_volunteer v 
+			left join activity_sign acs on v.userId=acs.userId 
+			left join activity_config ac on acs.activityId=ac.id
+			where acs.activityId = #{activityId} and acs.userId in 
+			(select userId from (select userId from ( select DISTINCT cu.userId as userId from cs_common_form_user cu 
+			where cu.formId in 
+			(select formId from (select formId from activity_config  where id = #{activityId}) as c)) as cc 
+			where cc.userId not in
+			(select userId from ( select DISTINCT userId as userId from activity_sign  
+			where activityId = #{activityId}) as ccc)
+			) cc ) group by v.userId order by acs.signTime desc
+		</if>
+		<!-- 已签到 -->
+		<if test="state == 1">
+			select v.userId,v.`name`,v.sex,v.address,v.position,ac.formId as projectId
+			,count(acs.id) as countSign,sum(acs.timeNum) as totalTimeNum 
+			from cs_project_volunteer v 
+			left join activity_sign acs on v.userId=acs.userId left join 
+			activity_config ac on acs.activityId=ac.id
+			where acs.activityId = #{activityId} and acs.userId in 
+			(select userId from (select DISTINCT userId from activity_sign  where activityId = #{activityId}
+			) cc ) group by v.userId order by acs.signTime desc
+		</if>
+		<!-- 全部 -->
+		<if test="state == 2">
+			select v.userId,v.`name`,v.sex,v.address,v.position,ac.formId as projectId
+			,count(acs.id) as countSign,sum(acs.timeNum) as totalTimeNum 
+			from cs_project_volunteer v 
+			left join activity_sign acs on v.userId=acs.userId left join 
+			activity_config ac on acs.activityId=ac.id
+			where acs.activityId = #{activityId} and acs.userId in 
+			(select userId from (select DISTINCT cu.userId from cs_common_form_user cu where cu.formId in 
+			(select formId from (select formId from activity_config  where id = #{activityId}) as c)) cc ) 
+			group by v.userId order by acs.signTime desc
+		</if>
+	</select>
+	
+	<!-- 报名明细统计 -->
+	<select id="countEntry" parameterType="map" resultType="int">
+		<!-- 未签到 -->
+		<if test="state == 0">
+			select count(DISTINCT v.userId) from cs_project_volunteer v 
+			left join activity_sign acs on v.userId=acs.userId 
+			left join activity_config ac on acs.activityId=ac.id
+			where acs.activityId = #{activityId} and acs.userId in 
+			(select userId from (select userId from ( select DISTINCT cu.userId as userId from cs_common_form_user cu 
+			where cu.formId in 
+			(select formId from (select formId from activity_config  where id = #{activityId}) as c)) as cc 
+			where cc.userId not in
+			(select userId from ( select DISTINCT userId as userId from activity_sign  
+			where activityId = #{activityId}) as ccc)
+			) cc )
+		</if>
+		<!-- 已签到 -->
+		<if test="state == 1">
+			select count(DISTINCT v.userId) from cs_project_volunteer v 
+			left join activity_sign acs on v.userId=acs.userId left join 
+			activity_config ac on acs.activityId=ac.id
+			where acs.activityId = #{activityId} and acs.userId in 
+			(select userId from (select DISTINCT userId from activity_sign  where activityId = #{activityId}
+			) cc )
+		</if>
+		<!-- 全部 -->
+		<if test="state == 2">
+			select count(DISTINCT v.userId) from cs_project_volunteer v 
+			left join activity_sign acs on v.userId=acs.userId left join 
+			activity_config ac on acs.activityId=ac.id
+			where acs.activityId = #{activityId} and acs.userId in 
+			(select userId from (select DISTINCT cu.userId from cs_common_form_user cu where cu.formId in 
+			(select formId from (select formId from activity_config  where id = #{activityId}) as c)) cc ) 
+		</if>
+	</select>
+	
+	<select id="queryByVolunteerIdAndFormId"  resultType="ProjectVolunteer"  parameterType="integer">
+		SELECT cv.name,cv.sex,cv.mobile,cv.address,cv.position,cv.field,cv.groupName,cv.historyService,cu.information FROM cs_project_volunteer cv
+		LEFT JOIN cs_common_form_user cu ON cv.userId=cu.userId
+		WHERE cv.userId=#{userId} AND cu.formId=#{formId}
+	</select>
+	
+	<!-- 判断用户是否已经成为此活动的志愿者 -->
+	<select id="isOrNotActivityVolunteer" parameterType="map" resultType="int">
+		select count(c.`name`) from activity_config ac
+		left join company c on ac.userId=c.userId
+		right join cs_project_volunteer v on c.`name`=v.groupName
+		 where ac.id = #{activityId} and v.userId = #{userId}
+	</select>
+	
+</mapper>

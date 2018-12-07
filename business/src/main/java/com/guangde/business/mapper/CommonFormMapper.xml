@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.CommonFormMapper">
+	<select id="queryById" resultType="CommonForm" parameterType="integer">
+		SELECT * FROM cs_common_form where id=#{id}
+	</select>
+
+	<update id="update" parameterType="CommonForm">
+		update cs_common_form
+		<set>
+			<if test="formName != null and formName != ''">
+				formName = #{formName}
+			</if>
+		</set>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+	
+	<insert id="save" parameterType="CommonForm"  useGeneratedKeys="true" keyProperty="id">
+		insert into cs_common_form
+		(
+			formName,
+			createTime
+		)
+		values
+		(
+			#{formName},
+			#{createTime}
+		)
+	</insert>
+</mapper>

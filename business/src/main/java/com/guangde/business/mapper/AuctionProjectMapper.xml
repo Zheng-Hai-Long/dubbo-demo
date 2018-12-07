@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.AuctionProjectMapper">
+
+	<select id="queryById"  resultType="AuctionProject"  parameterType="Integer">
+		SELECT
+			p.*, f.url AS coverImageUrl,
+			f.litterUrl AS coverImageUrlLitter,
+			f.description AS coverImageDecription
+		FROM
+			gy_auction_project p
+		LEFT JOIN b_file f ON p.coverimageid = f.id
+		WHERE
+			p.id = #{id}
+	</select>
+	
+	
+	<select id="queryByParam"  resultType="AuctionProject"  parameterType="AuctionProject">
+		(SELECT p.*, f.url AS coverImageUrl, f.litterUrl AS coverImageUrlLitter, f.description AS coverImageDecription 
+			FROM gy_auction_project p LEFT JOIN b_file f ON p.coverimageid = f.id ,
+			(SELECT DISTINCT b.auction_project_id,b.createtime 
+			FROM gy_bid b 
+			WHERE b.userId =#{belong}
+			AND b.state in (202,204)
+			GROUP BY b.auction_project_id 
+			ORDER BY b.createtime DESC) bd 
+			WHERE p.state in ( 202 , 203 ) 
+			<if test="isHide != null">
+				and p.isHide = #{isHide}
+			</if>
+			and p.id = bd.auction_project_id 
+			order by bd.createtime DESC limit 99999
+			)
+		UNION
+			(SELECT p.*, f.url AS coverImageUrl, f.litterUrl AS coverImageUrlLitter, f.description AS coverImageDecription 
+			FROM gy_auction_project p LEFT JOIN b_file f ON p.coverimageid = f.id ,
+			(SELECT DISTINCT b.auction_project_id,b.createtime 
+			FROM gy_bid b 
+			WHERE b.userId =#{belong} 
+			AND b.state in (100,200,203)
+			GROUP BY b.auction_project_id 
+			ORDER BY b.createtime DESC) bd 
+			WHERE 
+			<if test="isHide != null">
+				p.isHide = #{isHide}
+			</if> 
+			and p.id = bd.auction_project_id 
+			order by bd.createtime DESC limit 99999)
+		UNION
+			(SELECT p.*, f.url AS coverImageUrl, f.litterUrl AS coverImageUrlLitter, f.description AS coverImageDecription
+			 FROM gy_auction_project p LEFT JOIN b_file f ON p.coverimageid = f.id,
+			(SELECT DISTINCT b.auction_project_id,b.createtime 
+			FROM gy_bid b 
+			WHERE b.userId !=#{belong} 
+			GROUP BY b.auction_project_id 
+			ORDER BY b.createtime DESC) bd 
+			WHERE p.state in ( 201 , 202 , 203 , 204) 
+			<if test="isHide != null">
+				and p.isHide = #{isHide}
+			</if>
+			 order by p.registrTime DESC limit 99999)
+	</select>
+	
+	
+	<!-- 不进行特定排序的取项目列表 -->
+	<select id="queryByCache"  resultType="AuctionProject"  parameterType="AuctionProject">
+		SELECT
+			p.*, f.url AS coverImageUrl,
+			f.litterUrl AS coverImageUrlLitter,
+			f.description AS coverImageDecription
+		FROM
+			gy_auction_project p
+		LEFT JOIN b_file f ON p.coverimageid = f.id
+		<where>
+			<if test="id != null">
+				and p.id = #{id}
+			</if>
+			<if test="state != null">
+				and p.state = #{state}
+			</if>
+			<if test="projectId != null">
+				and p.projectId = #{projectId}
+			</if>
+			<if test="states != null">
+				and  p.state in 
+				<foreach collection="states" index="index" item="item" open="(" separator="," close=")">  
+		            #{item}   
+		   		 </foreach> 
+			</if>
+			<if test="isHide != null">
+				and p.isHide = #{isHide}
+			</if>
+ 		</where>
+ 		<choose>
+			<when test="orderBy !=null and orderBy !=''">
+				 order by ${orderBy}  <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+			</when>
+			<otherwise>
+			 		order by p.registrTime DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<update id="update" parameterType="AuctionProject">
+		update gy_auction_project
+		<set>
+			<if test="state != null">
+				state = #{state},
+			</if>
+			<if test="number != null">
+				number = #{number},
+			</if>
+			<if test="deadline != null">
+				deadline = #{deadline},
+			</if>
+			<if test="belong != null">
+				belong = #{belong},
+			</if>
+			<if test="currentPrice != null">
+				currentPrice = #{currentPrice},
+			</if>
+			<if test="peopleNum != null">
+				peopleNum = #{peopleNum},
+			</if>
+		</set>
+		<where>
+			id = #{id}
+		</where>
+	</update>
+	
+</mapper>

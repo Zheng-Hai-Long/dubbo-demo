@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guangde.business.dao.NewLeaveWordMapper">	
+	
+	<insert id="save" parameterType="NewLeaveWord"  useGeneratedKeys="true" keyProperty="id">
+		insert into newLeaveWord
+		(
+			type,
+			projectId,
+			projectDonateId,
+			projectFeedbackId,
+			leavewordUserId,
+			replyUserId,
+			leavewordName,
+			replyName,
+			content,
+			updateTime,
+			createTime,
+			isRead,
+			state
+		)
+		values
+		(
+			#{type},
+			#{projectId},
+			#{projectDonateId},
+			#{projectFeedbackId},
+			#{leavewordUserId},
+			#{replyUserId},
+			#{leavewordName},
+			#{replyName},
+			#{content},
+			#{updateTime},
+			#{createTime},
+			#{isRead},
+			#{state}
+		)
+	</insert>
+	
+	<update id="update"  parameterType="NewLeaveWord">
+		update newLeaveWord 
+		<set>
+			<if test="type != null">
+				 type=#{type},
+			</if>
+			<if test="projectId != null">
+				projectId=#{projectId},
+			</if>
+			<if test="projectDonateId != null">
+				projectDonateId=#{projectDonateId},
+			</if>
+			<if test="projectFeedbackId != null">
+				projectFeedbackId=#{projectFeedbackId},
+			</if>
+			<if test="leavewordUserId != null">
+				leavewordUserId=#{leavewordUserId},
+			</if>
+			<if test="replyUserId != null">
+				replyUserId=#{replyUserId},
+			</if>
+			<if test="leavewordName != null">
+				leavewordName=#{leavewordName},
+			</if>
+			<if test="replyName != null">
+				replyName=#{replyName},
+			</if>
+			<if test="content != null">
+				content=#{content},
+			</if>
+			<if test="updateTime != null">
+				updateTime=#{updateTime},
+			</if>
+			<if test="createTime != null">
+				createTime=#{createTime}
+			</if>
+			<if test="isRead != null">
+				isRead=#{isRead}
+			</if>
+		</set> 
+	    where id=#{id}	   
+	</update>
+
+	<update id="updateIsRead"  parameterType="integer">
+		update newLeaveWord set isRead=1 where projectDonateId =#{projectDonateId}
+	</update>
+	
+     <select id="queryByParam"  resultType="NewLeaveWord"  parameterType="NewLeaveWord">
+			select * from newLeaveWord 
+		<where> state = 203
+			<if test="type != null">
+				 and type=#{type}
+			</if>
+			<if test="projectId != null">
+				and projectId=#{projectId}
+			</if>
+			<if test="projectDonateId != null">
+				and projectDonateId=#{projectDonateId}
+			</if>
+			<if test="projectFeedbackId != null">
+				and projectFeedbackId=#{projectFeedbackId}
+			</if>
+			<if test="leavewordUserId != null">
+				and leavewordUserId=#{leavewordUserId}
+			</if>
+			<if test="replyUserId != null">
+				and replyUserId=#{replyUserId}
+			</if>
+			<if test="leavewordName != null">
+				and leavewordName=#{leavewordName}
+			</if>
+			<if test="replyName != null">
+				and replyName=#{replyName}
+			</if>
+			<if test="content != null">
+				and content=#{content}
+			</if>
+			<if test="updateTime != null">
+				and updateTime=#{updateTime}
+			</if>
+			<if test="createTime != null">
+				and createTime=#{createTime}
+			</if>
+			<if test="isRead != null">
+				and isRead=#{isRead}
+			</if>
+		</where>
+		 <choose>
+			 <when test="orderBy !=null and orderBy !=''">
+				 order by ${orderBy}  <if test="orderDirection != null and orderDirection != ''">${orderDirection}</if>
+			 </when>
+			 <otherwise>
+				 order by createTime DESC
+			 </otherwise>
+		 </choose>
+
+	</select>
+	<!-- 	查询所有未回复的留言记录 -->
+	<select id="queryNoReplyByParam"  resultType="NewLeaveWord"  parameterType="NewLeaveWord">
+			select * from newLeaveWord  where projectId=#{projectId} and leavewordUserId!=#{leavewordUserId} and  isRead=0 and state = 203
+			order by createTime DESC
+	</select>
+	<!-- 按条件查询评论数（去除自己留言、回复） -->
+	<select id="countLeaveWordNum"  resultType="int"  parameterType="NewLeaveWord">
+			select count(*) from newLeaveWord 
+		    <where> state = 203
+			<if test="type != null">
+				 and type=#{type}
+			</if>
+			<if test="projectId != null">
+				and projectId=#{projectId}
+			</if>
+			<if test="projectDonateId != null">
+				and projectDonateId=#{projectDonateId}
+			</if>
+			<if test="projectFeedbackId != null">
+				and projectFeedbackId=#{projectFeedbackId}
+			</if>
+			<if test="leavewordUserId != null">
+				and leavewordUserId=#{leavewordUserId}
+			</if>
+			<if test="replyUserId != null">
+				and replyUserId=#{replyUserId}
+			</if>
+			<if test="leavewordName != null">
+				and leavewordName=#{leavewordName}
+			</if>
+			<if test="replyName != null">
+				and replyName=#{replyName}
+			</if>
+			<if test="content != null">
+				and content=#{content}
+			</if>
+			<if test="updateTime != null">
+				and updateTime=#{updateTime}
+			</if>
+			<if test="createTime != null">
+				and createTime=#{createTime}
+			</if>
+			<if test="isRead != null">
+				and isRead=#{isRead}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 根据项目id查询留言 -->
+	<select id="queryMessageWall" resultType="NewLeaveWord" parameterType="int">
+		(
+		SELECT
+			n.leavewordUserId,
+			u.nickName as leavewordName,
+			n.content,
+			n.createTime,
+			0 AS replyName
+		FROM
+			newLeaveWord n
+		LEFT JOIN together_config t ON n.leavewordUserId = t.userId
+		AND n.projectId = t.projectId
+		RIGHT JOIN frontUser u ON n.leavewordUserId = u.id
+		WHERE
+			n.projectId = #{projectId} AND n.type=2 AND state = 203
+		ORDER BY replyName DESC, createTime DESC
+	)
+	UNION
+		(
+			SELECT
+				c.userId,
+				u.nickName as leavewordName,
+				c.content,
+				c.createTime,
+				donateMoney AS replyName
+			FROM
+				together_config c
+			LEFT JOIN frontUser u ON c.userId = u.id
+			WHERE c.projectId = #{projectId}
+			ORDER BY replyName DESC, c.createTime DESC
+		)
+	ORDER BY replyName DESC,createTime DESC
+	</select>
+	
+	<!-- 根据用户id查询是否留过言 -->
+	<select id="queryIsOrNotNewLeaveWordByUserId" resultType="int" parameterType="int">
+		SELECT count(*) FROM newLeaveWord WHERE leavewordUserId= #{userId} AND type=2 AND state = 203 AND DATE_FORMAT(createTime, "%y-%m-%d") = CURDATE()
+	</select>
+	
+	<!-- 根据项目id查询不重复的留言数 -->
+	<select id="countNewLeaveWordByNoRepeatUserId" resultType="int" parameterType="NewLeaveWord">
+		SELECT count(DISTINCT(leavewordUserId)) FROM newLeaveWord 
+		<where>
+			projectId= #{projectId} AND type=2 AND state = 203
+			<if test="type==0">
+				AND DATE_FORMAT(createTime, "%y-%m-%d") = CURDATE()
+			</if>
+		</where>
+	</select>
+
+	<!-- 根据用户id查询捐款评论未读数 -->
+	<select id="queryNotReadDonateNewLeaveWordByUserId" parameterType="integer" resultType="NewLeaveWord">
+		<!-- select count(1) from (select count(1) from newLeaveWord
+		where projectDonateId in (SELECT id from  donate_record  d where userId =#{userId}) and isRead=0 GROUP BY projectDonateId)t -->
+		SELECT
+			*
+		FROM
+			newLeaveWord
+		WHERE
+			projectDonateId IN (
+				SELECT
+					id
+				FROM
+					donate_record d
+				WHERE
+					userId = #{userId}
+			)
+			AND isRead = 0
+			AND state = 203
+	</select>
+</mapper>
